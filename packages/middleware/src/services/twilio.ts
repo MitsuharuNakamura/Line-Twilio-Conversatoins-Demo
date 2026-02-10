@@ -82,7 +82,7 @@ export class TwilioClient {
       throw new Error(`Twilio API failed: ${response.status}`);
     }
 
-    return response.json();
+    return response.json() as Promise<TwilioConversation>;
   }
 
   /**
@@ -111,7 +111,7 @@ export class TwilioClient {
       throw new Error(`Twilio API failed: ${response.status}`);
     }
 
-    return response.json();
+    return response.json() as Promise<TwilioConversation>;
   }
 
   /**
@@ -143,7 +143,7 @@ export class TwilioClient {
       throw new Error(`Twilio API failed: ${response.status}`);
     }
 
-    return response.json();
+    return response.json() as Promise<TwilioConversation>;
   }
 
   /**
@@ -176,7 +176,7 @@ export class TwilioClient {
       throw new Error(`Twilio API failed: ${response.status}`);
     }
 
-    return response.json();
+    return response.json() as Promise<TwilioMessage>;
   }
 
   /**
@@ -200,7 +200,7 @@ export class TwilioClient {
       throw new Error(`Twilio API failed: ${response.status}`);
     }
 
-    return response.json();
+    return response.json() as Promise<TwilioConversation>;
   }
 
   /**
@@ -304,6 +304,6 @@ export class TwilioClient {
       throw new Error(`Twilio API failed: ${response.status}`);
     }
 
-    return response.json();
+    return response.json() as Promise<TwilioMessage>;
   }
 }

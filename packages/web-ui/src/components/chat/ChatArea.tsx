@@ -46,10 +46,13 @@ const ChatArea: React.FC<ChatAreaProps> = ({
       // 会話が変更されたら即座に最下部へスクロール
       scrollToBottom('auto');
 
-      // 画像読み込みを考慮して再スクロール
-      setTimeout(() => scrollToBottom('smooth'), 500);
+      // 画像読み込みを考慮して複数回再スクロール
+      const delays = [100, 300, 500, 1000, 1500];
+      delays.forEach(delay => {
+        setTimeout(() => scrollToBottom('smooth'), delay);
+      });
     }
-  }, [conversation?.sid, scrollToBottom]); // conversation.sidの変更を監視
+  }, [conversation?.sid, messages.length, scrollToBottom]); // messagesの読み込みも監視
 
   // 新しいメッセージが追加されたら最下部にスクロール
   useEffect(() => {

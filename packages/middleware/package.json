@@ -5,11 +5,9 @@
   "type": "module",
   "main": "./src/index.ts",
   "scripts": {
-    "dev": "wrangler dev",
-    "dev:node": "tsx watch src/server.ts",
+    "dev": "tsx watch src/server.ts",
     "start": "node dist/server.js",
     "build": "tsc",
-    "deploy": "wrangler deploy",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -19,10 +17,8 @@
     "jose": "^5.2.0"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20240117.0",
     "@types/node": "^20.0.0",
     "tsx": "^4.7.0",
-    "typescript": "^5.3.0",
-    "wrangler": "^3.22.0"
+    "typescript": "^5.3.0"
   }
 }

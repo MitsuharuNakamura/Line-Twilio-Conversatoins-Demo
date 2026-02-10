@@ -1,7 +1,7 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "types": ["@cloudflare/workers-types", "node"],
+    "types": ["node"],
     "lib": ["ES2022"],
     "target": "ES2020",
     "module": "ES2022",

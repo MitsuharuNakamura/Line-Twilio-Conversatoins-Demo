@@ -1,13 +1,13 @@
 /**
- * Cloudflare Workers エントリポイント
- * Hono アプリケーション
+ * Node.js環境用エントリポイント
+ * Hono アプリケーション（環境変数をprocess.envから取得）
  */
 
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
-import lineWebhook from './routes/line-webhook';
-import conversationsWebhook from './routes/conversations-webhook';
-import tokenRoute from './routes/token';
+import lineWebhook from './routes/line-webhook.js';
+import conversationsWebhook from './routes/conversations-webhook.js';
+import tokenRoute from './routes/token.js';
 
 export interface Env {
   // LINE
@@ -23,6 +23,21 @@ export interface Env {
 }
 
 const app = new Hono<{ Bindings: Env }>();
+
+// 環境変数をBindingsとして注入するミドルウェア
+app.use('*', async (c, next) => {
+  // Node.js環境では process.env から環境変数を取得
+  c.env = {
+    LINE_CHANNEL_ACCESS_TOKEN: process.env.LINE_CHANNEL_ACCESS_TOKEN!,
+    LINE_CHANNEL_SECRET: process.env.LINE_CHANNEL_SECRET!,
+    TWILIO_ACCOUNT_SID: process.env.TWILIO_ACCOUNT_SID!,
+    TWILIO_AUTH_TOKEN: process.env.TWILIO_AUTH_TOKEN!,
+    TWILIO_API_KEY_SID: process.env.TWILIO_API_KEY_SID!,
+    TWILIO_API_KEY_SECRET: process.env.TWILIO_API_KEY_SECRET!,
+    TWILIO_CONVERSATIONS_SERVICE_SID: process.env.TWILIO_CONVERSATIONS_SERVICE_SID!,
+  } as any;
+  await next();
+});
 
 // リクエストログミドルウェア
 app.use('*', async (c, next) => {

@@ -4,7 +4,7 @@
  */
 
 import { serve } from '@hono/node-server';
-import app from './index-node.js';
+import app from './index.js';
 
 const port = parseInt(process.env.PORT || '8080', 10);
 

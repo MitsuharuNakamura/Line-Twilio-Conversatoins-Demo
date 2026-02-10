@@ -50,7 +50,7 @@ export class LineClient {
       throw new Error(`LINE Profile API failed: ${response.status}`);
     }
 
-    return response.json();
+    return response.json() as Promise<LineProfile>;
   }
 
   /**
