@@ -1,0 +1,79 @@
+import Foundation
+import AVFoundation
+import Combine
+
+class VideoManager: ObservableObject {
+    @Published var videos: [Video] = []
+
+    init() {
+        loadVideos()
+    }
+
+    func loadVideos() {
+        // まず、videosフォルダがあるか確認
+        if let videosURL = Bundle.main.url(forResource: "videos", withExtension: nil) {
+            print("Found videos folder in bundle")
+            loadVideosFromPath(videosURL)
+            return
+        }
+
+        // videosフォルダがない場合、Bundleルートから動画ファイルを探す
+        print("Videos folder not found, searching in bundle root...")
+        guard let resourcePath = Bundle.main.resourcePath else {
+            print("Resource path not found")
+            return
+        }
+
+        loadVideosFromPath(URL(fileURLWithPath: resourcePath))
+    }
+
+    private func loadVideosFromPath(_ videosURL: URL) {
+        do {
+            let fileURLs = try FileManager.default.contentsOfDirectory(
+                at: videosURL,
+                includingPropertiesForKeys: nil,
+                options: [.skipsHiddenFiles]
+            )
+
+            print("Found \(fileURLs.count) files in videos directory")
+
+            let videoExtensions = ["mp4", "mov", "m4v", "avi"]
+            let videoFiles = fileURLs.filter { url in
+                videoExtensions.contains(url.pathExtension.lowercased())
+            }
+
+            print("Found \(videoFiles.count) video files")
+
+            videos = videoFiles.map { url in
+                let filename = url.lastPathComponent
+                let title = url.deletingPathExtension().lastPathComponent
+                    .replacingOccurrences(of: "_", with: " ")
+                    .replacingOccurrences(of: "-", with: " ")
+                print("Added video: \(title)")
+                return Video(filename: filename, title: title)
+            }.sorted { $0.title < $1.title }
+
+        } catch {
+            print("Error loading videos: \(error)")
+        }
+    }
+
+    func getVideoURL(for video: Video) -> URL? {
+        let components = video.filename.components(separatedBy: ".")
+        let nameWithoutExtension = components.dropLast().joined(separator: ".")
+        let ext = components.last ?? ""
+
+        // まず、videosフォルダ内を探す
+        if let url = Bundle.main.url(forResource: "videos/\(nameWithoutExtension)", withExtension: ext) {
+            return url
+        }
+
+        // Bundleルート直下を探す
+        if let url = Bundle.main.url(forResource: nameWithoutExtension, withExtension: ext) {
+            return url
+        }
+
+        print("Video file not found: \(video.filename)")
+        return nil
+    }
+}

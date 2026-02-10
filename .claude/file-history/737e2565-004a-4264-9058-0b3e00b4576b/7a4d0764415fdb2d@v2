@@ -1,0 +1,179 @@
+let device;
+let currentCall = null;
+
+const form = document.getElementById('contactForm');
+const callButton = document.getElementById('callButton');
+const buttonText = document.getElementById('buttonText');
+const statusDiv = document.getElementById('status');
+const nameInput = document.getElementById('name');
+const emailInput = document.getElementById('email');
+const requirementSelect = document.getElementById('requirement');
+
+// Initialize Twilio Device
+async function initializeDevice() {
+  try {
+    const identity = nameInput.value || 'user';
+
+    // Get access token from server
+    const response = await fetch('/api/token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ identity })
+    });
+
+    const data = await response.json();
+
+    // Create Twilio Device
+    device = new Twilio.Device(data.token, {
+      logLevel: 1,
+      codecPreferences: ['opus', 'pcmu']
+    });
+
+    // Device event handlers
+    device.on('registered', () => {
+      console.log('Device registered');
+      updateStatus('デバイスが登録されました', 'success');
+    });
+
+    device.on('error', (error) => {
+      console.error('Device error:', error);
+      updateStatus(`エラー: ${error.message}`, 'error');
+      resetCallButton();
+    });
+
+    device.on('incoming', (call) => {
+      console.log('Incoming call');
+      currentCall = call;
+      setupCallHandlers(call);
+    });
+
+    await device.register();
+    return true;
+  } catch (error) {
+    console.error('Failed to initialize device:', error);
+    updateStatus('デバイスの初期化に失敗しました', 'error');
+    return false;
+  }
+}
+
+// Make outbound call
+async function makeCall() {
+  try {
+    if (!device) {
+      updateStatus('デバイスを初期化しています...', 'info');
+      const initialized = await initializeDevice();
+      if (!initialized) {
+        return;
+      }
+    }
+
+    const params = {
+      requirement: requirementSelect.value,
+      name: nameInput.value,
+      email: emailInput.value
+    };
+
+    updateStatus('通話を開始しています...', 'info');
+    callButton.disabled = true;
+    buttonText.textContent = '接続中...';
+    callButton.classList.add('calling');
+
+    currentCall = await device.connect({ params });
+    setupCallHandlers(currentCall);
+
+  } catch (error) {
+    console.error('Failed to make call:', error);
+    updateStatus(`通話の開始に失敗しました: ${error.message}`, 'error');
+    resetCallButton();
+  }
+}
+
+// Setup call event handlers
+function setupCallHandlers(call) {
+  call.on('accept', () => {
+    console.log('Call accepted');
+    updateStatus('通話中...', 'success');
+    buttonText.textContent = '通話を終了';
+    callButton.classList.remove('calling');
+    callButton.disabled = false;
+  });
+
+  call.on('disconnect', () => {
+    console.log('Call disconnected');
+    updateStatus('通話が終了しました', 'info');
+    currentCall = null;
+    resetCallButton();
+  });
+
+  call.on('cancel', () => {
+    console.log('Call cancelled');
+    updateStatus('通話がキャンセルされました', 'info');
+    currentCall = null;
+    resetCallButton();
+  });
+
+  call.on('reject', () => {
+    console.log('Call rejected');
+    updateStatus('通話が拒否されました', 'error');
+    currentCall = null;
+    resetCallButton();
+  });
+
+  call.on('error', (error) => {
+    console.error('Call error:', error);
+    updateStatus(`通話エラー: ${error.message}`, 'error');
+    currentCall = null;
+    resetCallButton();
+  });
+}
+
+// Hang up call
+function hangUp() {
+  if (currentCall) {
+    currentCall.disconnect();
+  }
+}
+
+// Reset call button to initial state
+function resetCallButton() {
+  callButton.disabled = false;
+  buttonText.textContent = '電話で問い合わせる';
+  callButton.classList.remove('calling');
+}
+
+// Update status message
+function updateStatus(message, type) {
+  statusDiv.textContent = message;
+  statusDiv.className = `status active ${type}`;
+}
+
+// Form submit handler
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  // Validate form
+  if (!nameInput.value || !emailInput.value || !requirementSelect.value) {
+    updateStatus('すべての項目を入力してください', 'error');
+    return;
+  }
+
+  if (currentCall) {
+    // If already in call, hang up
+    hangUp();
+  } else {
+    // Otherwise, make a new call
+    await makeCall();
+  }
+});
+
+// Clean up on page unload
+window.addEventListener('beforeunload', () => {
+  if (currentCall) {
+    currentCall.disconnect();
+  }
+  if (device) {
+    device.destroy();
+  }
+});

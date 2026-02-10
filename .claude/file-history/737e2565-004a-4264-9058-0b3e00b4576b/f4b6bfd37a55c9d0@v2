@@ -1,0 +1,43 @@
+#!/usr/bin/env node
+
+require('dotenv').config();
+
+console.log('\n🔍 Checking environment configuration...\n');
+
+const requiredEnvVars = [
+  'TWILIO_ACCOUNT_SID',
+  'TWILIO_API_KEY',
+  'TWILIO_API_SECRET',
+  'TWILIO_TWIML_APP_SID',
+  'OPENAI_API_KEY'
+];
+
+let allOk = true;
+
+requiredEnvVars.forEach(varName => {
+  const value = process.env[varName];
+  if (value) {
+    // Mask the value for security
+    const masked = value.substring(0, 6) + '***' + value.substring(value.length - 4);
+    console.log(`✅ ${varName}: ${masked}`);
+  } else {
+    console.log(`❌ ${varName}: NOT SET`);
+    allOk = false;
+  }
+});
+
+console.log('\n');
+
+if (allOk) {
+  console.log('✅ All required environment variables are set!\n');
+  console.log('Next steps:');
+  console.log('1. Run: npm install');
+  console.log('2. Run: npm start');
+  console.log('3. Open: http://localhost:3000\n');
+} else {
+  console.log('❌ Some environment variables are missing.\n');
+  console.log('Please check your .env file and ensure all required variables are set.');
+  console.log('You can copy .env.example to .env and fill in the values:\n');
+  console.log('  cp .env.example .env\n');
+  process.exit(1);
+}

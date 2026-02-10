@@ -1,0 +1,103 @@
+//
+//  CardView.swift
+//  NewsSwipe
+//
+//  Created by Claude on 2026-01-24.
+//
+
+import SwiftUI
+
+struct CardView: View {
+    let article: Article
+    let onTap: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            // 画像
+            if let imageURL = article.imageURL, let url = URL(string: imageURL) {
+                AsyncImage(url: url) { phase in
+                    switch phase {
+                    case .empty:
+                        Rectangle()
+                            .fill(Color.gray.opacity(0.3))
+                            .frame(height: 200)
+                            .overlay {
+                                ProgressView()
+                            }
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(height: 200)
+                            .clipped()
+                    case .failure:
+                        Rectangle()
+                            .fill(Color.gray.opacity(0.3))
+                            .frame(height: 200)
+                            .overlay {
+                                Image(systemName: "photo")
+                                    .font(.largeTitle)
+                                    .foregroundColor(.gray)
+                            }
+                    @unknown default:
+                        EmptyView()
+                    }
+                }
+            } else {
+                Rectangle()
+                    .fill(Color.gray.opacity(0.3))
+                    .frame(height: 200)
+                    .overlay {
+                        Image(systemName: "photo")
+                            .font(.largeTitle)
+                            .foregroundColor(.gray)
+                    }
+            }
+
+            // コンテンツ
+            VStack(alignment: .leading, spacing: 12) {
+                // タイトル
+                Text(article.title)
+                    .font(.headline)
+                    .fontWeight(.bold)
+                    .lineLimit(2)
+                    .foregroundColor(.primary)
+
+                // 要約
+                Text(article.summary)
+                    .font(.subheadline)
+                    .lineLimit(3)
+                    .foregroundColor(.secondary)
+
+                Spacer()
+
+                // メタ情報
+                HStack {
+                    Text(article.sourceName)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+
+                    Spacer()
+
+                    Text(article.publishedDate, style: .relative)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+            .padding(16)
+        }
+        .background(Color(uiColor: .systemBackground))
+        .cornerRadius(16)
+        .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 4)
+        .onTapGesture {
+            onTap()
+        }
+    }
+}
+
+#Preview {
+    CardView(article: Article.mock()) {
+        print("Card tapped")
+    }
+    .padding()
+}

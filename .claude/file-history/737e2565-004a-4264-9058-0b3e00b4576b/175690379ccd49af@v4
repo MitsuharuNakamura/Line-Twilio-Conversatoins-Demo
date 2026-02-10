@@ -1,0 +1,422 @@
+require('dotenv').config();
+const express = require('express');
+const WebSocket = require('ws');
+const twilio = require('twilio');
+const fs = require('fs');
+const path = require('path');
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// Check required environment variables at startup
+const requiredEnvVars = [
+  'TWILIO_ACCOUNT_SID',
+  'TWILIO_API_KEY',
+  'TWILIO_API_SECRET',
+  'TWILIO_TWIML_APP_SID',
+  'OPENAI_API_KEY'
+];
+
+const missingEnvVars = requiredEnvVars.filter(varName => !process.env[varName]);
+
+if (missingEnvVars.length > 0) {
+  console.error('\n❌ ERROR: Missing required environment variables:');
+  missingEnvVars.forEach(varName => console.error(`   - ${varName}`));
+  console.error('\nPlease create a .env file based on .env.example and fill in all required values.\n');
+  process.exit(1);
+}
+
+// Load inventory data
+const inventoryData = JSON.parse(
+  fs.readFileSync(path.join(__dirname, 'data', 'inventory.json'), 'utf8')
+);
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.static('public'));
+
+// Generate Twilio Access Token for Voice SDK
+app.post('/api/token', (req, res) => {
+  try {
+    // Check required environment variables
+    const requiredEnvVars = [
+      'TWILIO_ACCOUNT_SID',
+      'TWILIO_API_KEY',
+      'TWILIO_API_SECRET',
+      'TWILIO_TWIML_APP_SID'
+    ];
+
+    const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
+
+    if (missingVars.length > 0) {
+      console.error('Missing environment variables:', missingVars);
+      return res.status(500).json({
+        error: 'Server configuration error',
+        message: `Missing required environment variables: ${missingVars.join(', ')}`,
+        details: 'Please check your .env file'
+      });
+    }
+
+    const { identity } = req.body;
+    console.log('Generating token for identity:', identity || 'user');
+
+    const AccessToken = twilio.jwt.AccessToken;
+    const VoiceGrant = AccessToken.VoiceGrant;
+
+    const token = new AccessToken(
+      process.env.TWILIO_ACCOUNT_SID,
+      process.env.TWILIO_API_KEY,
+      process.env.TWILIO_API_SECRET,
+      { identity: identity || 'user' }
+    );
+
+    const voiceGrant = new VoiceGrant({
+      outgoingApplicationSid: process.env.TWILIO_TWIML_APP_SID,
+      incomingAllow: true
+    });
+
+    token.addGrant(voiceGrant);
+
+    console.log('Token generated successfully');
+    res.json({
+      token: token.toJwt(),
+      identity: identity || 'user'
+    });
+  } catch (error) {
+    console.error('Error generating token:', error);
+    res.status(500).json({
+      error: 'Failed to generate token',
+      message: error.message
+    });
+  }
+});
+
+// TwiML endpoint for voice calls
+app.post('/voice', (req, res) => {
+  const { requirement } = req.body;
+  const VoiceResponse = twilio.twiml.VoiceResponse;
+  const response = new VoiceResponse();
+
+  console.log('Incoming call with requirement:', requirement);
+
+  // Check if requirement is about products
+  if (requirement && requirement.includes('商品')) {
+    // Connect to AI
+    const connect = response.connect();
+    const url = `wss://${req.headers.host}/media-stream`;
+    connect.stream({ url });
+  } else {
+    // Play guidance message
+    response.say(
+      {
+        voice: 'Google.ja-JP-Neural2-B',
+        language: 'ja-JP'
+      },
+      'お問い合わせありがとうございます。商品に関するお問い合わせは、お問い合わせ種別で「商品について」を選択してください。その他のお問い合わせについては、別途ご連絡させていただきます。'
+    );
+    response.hangup();
+  }
+
+  res.type('text/xml');
+  res.send(response.toString());
+});
+
+// WebSocket server for media streaming
+const server = app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+  console.log(`Access the app at http://localhost:${PORT}`);
+});
+
+const wss = new WebSocket.Server({ server, path: '/media-stream' });
+
+wss.on('connection', (ws) => {
+  console.log('Client connected to media stream');
+
+  let streamSid = null;
+  let openAiWs = null;
+  let functionCallData = {}; // Store function call data
+
+  // Connect to OpenAI Realtime API
+  const connectToOpenAI = () => {
+    const url = 'wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-12-17';
+    openAiWs = new WebSocket(url, {
+      headers: {
+        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+        'OpenAI-Beta': 'realtime=v1'
+      }
+    });
+
+    openAiWs.on('open', () => {
+      console.log('Connected to OpenAI Realtime API');
+
+      // Configure session
+      const sessionConfig = {
+        type: 'session.update',
+        session: {
+          modalities: ['text', 'audio'],
+          instructions: `あなたはUnited Arrowsのカスタマーサービス担当者です。
+お客様の商品に関する問い合わせに丁寧に対応してください。
+在庫検索が必要な場合は、search_inventory関数を使用してください。
+日本語で自然な会話を心がけてください。`,
+          voice: 'shimmer',
+          input_audio_format: 'g711_ulaw',
+          output_audio_format: 'g711_ulaw',
+          input_audio_transcription: {
+            model: 'whisper-1'
+          },
+          turn_detection: {
+            type: 'server_vad',
+            threshold: 0.5,
+            prefix_padding_ms: 300,
+            silence_duration_ms: 500
+          },
+          tools: [
+            {
+              type: 'function',
+              name: 'search_inventory',
+              description: '商品の在庫を検索します。商品名、カテゴリ、カラー、サイズで検索できます。',
+              parameters: {
+                type: 'object',
+                properties: {
+                  name: {
+                    type: 'string',
+                    description: '商品名（部分一致）'
+                  },
+                  category: {
+                    type: 'string',
+                    description: 'カテゴリ（トップス、ボトムス、アウター）'
+                  },
+                  color: {
+                    type: 'string',
+                    description: 'カラー'
+                  },
+                  size: {
+                    type: 'string',
+                    description: 'サイズ'
+                  }
+                }
+              }
+            }
+          ],
+          tool_choice: 'auto'
+        }
+      };
+
+      openAiWs.send(JSON.stringify(sessionConfig));
+    });
+
+    openAiWs.on('message', (data) => {
+      try {
+        const message = JSON.parse(data);
+
+        // Log all message types for debugging
+        if (message.type !== 'response.audio.delta' && message.type !== 'input_audio_buffer.speech_stopped') {
+          console.log('OpenAI event:', message.type);
+        }
+
+        // Handle different event types
+        switch (message.type) {
+          case 'session.created':
+          case 'session.updated':
+            console.log('Session configured:', message.type);
+            break;
+
+          case 'response.audio.delta':
+            // Forward audio to Twilio
+            if (message.delta && ws.readyState === WebSocket.OPEN) {
+              const audioMessage = {
+                event: 'media',
+                streamSid: streamSid,
+                media: {
+                  payload: message.delta
+                }
+              };
+              ws.send(JSON.stringify(audioMessage));
+            }
+            break;
+
+          case 'response.output_item.added':
+            if (message.item?.type === 'function_call') {
+              console.log('Function call detected:', message.item.name);
+              functionCallData[message.item.call_id] = {
+                call_id: message.item.call_id,
+                name: message.item.name
+              };
+            }
+            break;
+
+          case 'response.function_call_arguments.done':
+            console.log('Function call arguments done:', message);
+            const callData = functionCallData[message.call_id];
+            if (callData) {
+              callData.arguments = message.arguments;
+              handleFunctionCall(callData, openAiWs);
+              delete functionCallData[message.call_id];
+            }
+            break;
+
+          case 'input_audio_buffer.speech_started':
+            console.log('User started speaking');
+            // Clear audio queue
+            if (ws.readyState === WebSocket.OPEN) {
+              ws.send(JSON.stringify({ event: 'clear', streamSid: streamSid }));
+            }
+            break;
+
+          case 'error':
+            console.error('OpenAI error:', message);
+            break;
+        }
+      } catch (error) {
+        console.error('Error processing OpenAI message:', error);
+      }
+    });
+
+    openAiWs.on('error', (error) => {
+      console.error('OpenAI WebSocket error:', error);
+    });
+
+    openAiWs.on('close', () => {
+      console.log('Disconnected from OpenAI');
+    });
+  };
+
+  // Handle messages from Twilio
+  ws.on('message', (message) => {
+    try {
+      const msg = JSON.parse(message);
+
+      switch (msg.event) {
+        case 'start':
+          streamSid = msg.start.streamSid;
+          console.log('Media stream started:', streamSid);
+          connectToOpenAI();
+          break;
+
+        case 'media':
+          // Forward audio to OpenAI
+          if (openAiWs && openAiWs.readyState === WebSocket.OPEN) {
+            const audioAppend = {
+              type: 'input_audio_buffer.append',
+              audio: msg.media.payload
+            };
+            openAiWs.send(JSON.stringify(audioAppend));
+          }
+          break;
+
+        case 'stop':
+          console.log('Media stream stopped');
+          if (openAiWs) {
+            openAiWs.close();
+          }
+          break;
+      }
+    } catch (error) {
+      console.error('Error processing Twilio message:', error);
+    }
+  });
+
+  ws.on('close', () => {
+    console.log('Client disconnected');
+    if (openAiWs) {
+      openAiWs.close();
+    }
+  });
+});
+
+// Function to handle inventory search
+function handleFunctionCall(item, openAiWs) {
+  const { call_id, name, arguments: args } = item;
+
+  console.log('Handling function call:', name, 'with args:', args);
+
+  if (name === 'search_inventory') {
+    try {
+      // Parse arguments safely
+      let params = {};
+      if (args) {
+        if (typeof args === 'string') {
+          params = args.trim() ? JSON.parse(args) : {};
+        } else {
+          params = args;
+        }
+      }
+
+      console.log('Parsed params:', params);
+
+      const results = searchInventory(params);
+
+      console.log('Search results:', JSON.stringify(results, null, 2));
+
+      // Send function result back to OpenAI
+      const functionOutput = {
+        type: 'conversation.item.create',
+        item: {
+          type: 'function_call_output',
+          call_id: call_id,
+          output: JSON.stringify(results)
+        }
+      };
+
+      openAiWs.send(JSON.stringify(functionOutput));
+
+      // Request response
+      openAiWs.send(JSON.stringify({ type: 'response.create' }));
+    } catch (error) {
+      console.error('Error handling function call:', error);
+
+      // Send error back to OpenAI
+      const errorOutput = {
+        type: 'conversation.item.create',
+        item: {
+          type: 'function_call_output',
+          call_id: call_id,
+          output: JSON.stringify({ error: error.message })
+        }
+      };
+
+      openAiWs.send(JSON.stringify(errorOutput));
+      openAiWs.send(JSON.stringify({ type: 'response.create' }));
+    }
+  }
+}
+
+// Search inventory function
+function searchInventory(params = {}) {
+  const { name, category, color, size } = params;
+  let results = [...inventoryData.products];
+
+  if (name) {
+    results = results.filter(p =>
+      p.name.toLowerCase().includes(name.toLowerCase())
+    );
+  }
+
+  if (category) {
+    results = results.filter(p => p.category === category);
+  }
+
+  if (color) {
+    results = results.filter(p => p.color.includes(color));
+  }
+
+  if (size) {
+    results = results.filter(p => {
+      const sizeStock = p.sizes[size];
+      return sizeStock !== undefined && sizeStock > 0;
+    });
+  }
+
+  // Format results
+  return results.map(p => ({
+    id: p.id,
+    name: p.name,
+    category: p.category,
+    color: p.color.join(', '),
+    availableSizes: Object.entries(p.sizes)
+      .filter(([_, stock]) => stock > 0)
+      .map(([size, stock]) => `${size}(在庫: ${stock})`)
+      .join(', '),
+    price: `¥${p.price.toLocaleString()}`
+  }));
+}

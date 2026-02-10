@@ -1,0 +1,38 @@
+[
+  {
+    "content": "Add sendEndSession method to handle server-initiated session termination",
+    "status": "in_progress",
+    "priority": "high",
+    "id": "1"
+  },
+  {
+    "content": "Add helper methods for different end session scenarios (live agent handoff, conversation completed, error)",
+    "status": "pending",
+    "priority": "medium",
+    "id": "2"
+  },
+  {
+    "content": "Add logic to detect when to end conversation based on AI response",
+    "status": "pending",
+    "priority": "medium",
+    "id": "3"
+  },
+  {
+    "content": "Handle user-initiated call termination in the 'end' message handler",
+    "status": "pending",
+    "priority": "high",
+    "id": "4"
+  },
+  {
+    "content": "Add detection logic for user's speech that triggers session end",
+    "status": "pending",
+    "priority": "high",
+    "id": "5"
+  },
+  {
+    "content": "Add detection logic for agent's response that triggers session end",
+    "status": "pending",
+    "priority": "high",
+    "id": "6"
+  }
+]

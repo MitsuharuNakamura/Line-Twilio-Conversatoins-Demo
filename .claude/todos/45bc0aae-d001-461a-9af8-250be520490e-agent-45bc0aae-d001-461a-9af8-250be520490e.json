@@ -1,0 +1,12 @@
+[
+  {
+    "content": "Claude Code用のプロンプト実行スクリプトを作成",
+    "status": "completed",
+    "id": "1"
+  },
+  {
+    "content": "プロンプトテンプレートを簡単に使えるショートカットファイルを作成",
+    "status": "completed",
+    "id": "2"
+  }
+]

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Twilio - コミュニケーションの未来</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="video-container">
+        <!-- Scene 1: Opening -->
+        <div class="scene active" id="scene1">
+            <div class="logo-container">
+                <div class="twilio-logo">
+                    <span class="logo-text">twilio</span>
+                </div>
+                <h1 class="tagline fade-in">コミュニケーションの未来を、今</h1>
+            </div>
+        </div>
+
+        <!-- Scene 2: Problem Statement -->
+        <div class="scene" id="scene2">
+            <div class="content-center">
+                <h2 class="slide-in">顧客とのコミュニケーション、<br>こんな課題はありませんか？</h2>
+                <div class="problem-items">
+                    <div class="problem-item fade-in-up delay-1">
+                        <span class="icon">📱</span>
+                        <p>複数のチャネル管理が複雑</p>
+                    </div>
+                    <div class="problem-item fade-in-up delay-2">
+                        <span class="icon">⚡</span>
+                        <p>リアルタイム対応が困難</p>
+                    </div>
+                    <div class="problem-item fade-in-up delay-3">
+                        <span class="icon">🔧</span>
+                        <p>システム構築に時間とコストがかかる</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scene 3: Solution -->
+        <div class="scene" id="scene3">
+            <div class="content-center">
+                <h2 class="slide-in">Twilioなら、すべて解決</h2>
+                <div class="solution-grid">
+                    <div class="solution-card fade-in delay-1">
+                        <div class="card-icon">💬</div>
+                        <h3>SMS & メッセージング</h3>
+                        <p>世界中の顧客にSMS、WhatsApp、LINEでリーチ</p>
+                    </div>
+                    <div class="solution-card fade-in delay-2">
+                        <div class="card-icon">📞</div>
+                        <h3>音声通話</h3>
+                        <p>高品質な音声通話APIで顧客サポートを強化</p>
+                    </div>
+                    <div class="solution-card fade-in delay-3">
+                        <div class="card-icon">📧</div>
+                        <h3>Email API</h3>
+                        <p>確実に届くトランザクションメール配信</p>
+                    </div>
+                    <div class="solution-card fade-in delay-4">
+                        <div class="card-icon">🎥</div>
+                        <h3>ビデオ通話</h3>
+                        <p>ブラウザベースのビデオ会議を簡単に実装</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scene 4: Features -->
+        <div class="scene" id="scene4">
+            <div class="content-center">
+                <h2 class="slide-in">選ばれる理由</h2>
+                <div class="features-list">
+                    <div class="feature-item slide-in-left delay-1">
+                        <span class="feature-number">01</span>
+                        <div class="feature-content">
+                            <h3>簡単な導入</h3>
+                            <p>数行のコードで実装可能。開発者フレンドリーなAPI</p>
+                        </div>
+                    </div>
+                    <div class="feature-item slide-in-left delay-2">
+                        <span class="feature-number">02</span>
+                        <div class="feature-content">
+                            <h3>グローバル対応</h3>
+                            <p>180カ国以上、数十億のユーザーにリーチ</p>
+                        </div>
+                    </div>
+                    <div class="feature-item slide-in-left delay-3">
+                        <span class="feature-number">03</span>
+                        <div class="feature-content">
+                            <h3>高い信頼性</h3>
+                            <p>99.95%の稼働率保証。エンタープライズグレードのインフラ</p>
+                        </div>
+                    </div>
+                    <div class="feature-item slide-in-left delay-4">
+                        <span class="feature-number">04</span>
+                        <div class="feature-content">
+                            <h3>柔軟な拡張性</h3>
+                            <p>スタートアップから大企業まで、成長に合わせてスケール</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scene 5: Use Cases -->
+        <div class="scene" id="scene5">
+            <div class="content-center">
+                <h2 class="slide-in">活用シーン</h2>
+                <div class="use-cases">
+                    <div class="use-case fade-in delay-1">
+                        <div class="use-case-icon">🛒</div>
+                        <h3>Eコマース</h3>
+                        <p>注文確認、配送通知をSMSで自動送信</p>
+                    </div>
+                    <div class="use-case fade-in delay-2">
+                        <div class="use-case-icon">🏥</div>
+                        <h3>ヘルスケア</h3>
+                        <p>予約リマインダーやオンライン診療</p>
+                    </div>
+                    <div class="use-case fade-in delay-3">
+                        <div class="use-case-icon">🏦</div>
+                        <h3>金融</h3>
+                        <p>二段階認証やアラート通知</p>
+                    </div>
+                    <div class="use-case fade-in delay-4">
+                        <div class="use-case-icon">📚</div>
+                        <h3>教育</h3>
+                        <p>オンライン授業やリアルタイム連絡</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scene 6: Call to Action -->
+        <div class="scene" id="scene6">
+            <div class="content-center">
+                <h2 class="slide-in">今すぐ始めよう</h2>
+                <p class="cta-subtitle fade-in delay-1">無料トライアルで、Twilioの力を体験</p>
+                <div class="cta-buttons fade-in-up delay-2">
+                    <button class="btn-primary pulse">無料で始める</button>
+                    <button class="btn-secondary">詳しく見る</button>
+                </div>
+                <div class="trusted-by fade-in delay-3">
+                    <p>世界10万社以上の企業が導入</p>
+                    <div class="company-logos">
+                        <span>Uber</span>
+                        <span>Airbnb</span>
+                        <span>Netflix</span>
+                        <span>Salesforce</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scene 7: Closing -->
+        <div class="scene" id="scene7">
+            <div class="logo-container">
+                <div class="twilio-logo large">
+                    <span class="logo-text">twilio</span>
+                </div>
+                <h1 class="tagline fade-in">Build the future of communications</h1>
+                <p class="website fade-in delay-1">www.twilio.com</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Progress indicator -->
+    <div class="progress-bar">
+        <div class="progress-fill"></div>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls">
+        <button id="playBtn" class="control-btn">▶️ 再生</button>
+        <button id="pauseBtn" class="control-btn">⏸️ 一時停止</button>
+        <button id="restartBtn" class="control-btn">🔄 最初から</button>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

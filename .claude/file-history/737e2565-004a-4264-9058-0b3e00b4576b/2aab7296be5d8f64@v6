@@ -1,0 +1,302 @@
+# United Arrows Demo - Web電話アプリ
+
+アパレル小売向けのWeb電話デモアプリケーション。Twilio Voice JavaScript SDK v2とOpenAI Realtime APIを使用して、ブラウザから直接音声通話を行い、AIアシスタントが商品に関する問い合わせに対応します。
+
+## 機能
+
+- **問い合わせフォーム**: 名前、メールアドレス、問い合わせ種別を入力
+- **ブラウザ通話**: Twilio Voice SDK v2を使用したブラウザベースの音声通話
+- **要件に応じた分岐**:
+  - 「商品について」→ AIアシスタントに接続
+  - それ以外 → 案内メッセージを再生
+- **在庫検索機能**: AIが`search_inventory`関数を使用して在庫を検索
+- **在庫データ**: `data/inventory.json`に格納されたアパレル商品データ
+
+## 必要要件
+
+- Node.js (v14以上)
+- Twilioアカウント
+- OpenAI APIキー（GPT-4o Realtime API対応）
+- ngrok（ローカル開発時）
+
+## セットアップ
+
+### 1. 依存関係のインストール
+
+```bash
+npm install
+```
+
+### 2. 環境変数の設定
+
+`.env.example`を`.env`にコピーして、必要な値を設定します。
+
+```bash
+cp .env.example .env
+```
+
+`.env`ファイルを編集：
+
+```env
+TWILIO_ACCOUNT_SID=your_account_sid
+TWILIO_AUTH_TOKEN=your_auth_token
+TWILIO_API_KEY=your_api_key
+TWILIO_API_SECRET=your_api_secret
+TWILIO_TWIML_APP_SID=your_twiml_app_sid
+OPENAI_API_KEY=your_openai_api_key
+PORT=3000
+```
+
+### 3. Twilio設定
+
+#### 3.1 API Keyの作成
+
+1. [Twilio Console](https://console.twilio.com/)にログイン
+2. **Account** → **API keys & tokens** → **Create API key**
+3. Friendly nameを入力（例: "UA Demo"）
+4. **API Key**と**API Secret**をコピーして`.env`に保存
+
+#### 3.2 TwiML Appの作成
+
+1. Twilio Console → **Voice** → **TwiML Apps** → **Create new TwiML App**
+2. Friendly nameを入力（例: "United Arrows Demo"）
+3. Voice Request URLは空欄でOK（後で `start.sh` スクリプトが自動設定します）
+4. **Save**して、TwiML App SIDを`.env`に保存
+
+**注**: Voice Request URLは開発時に`start.sh`スクリプトが自動的にngrok URLに更新します
+
+### 4. アプリケーションの起動（推奨：自動化スクリプト使用）
+
+#### 方法1: 自動起動スクリプトを使用（推奨）
+
+**起動**:
+```bash
+./start.sh
+```
+
+このスクリプトは以下を自動で実行します：
+1. 既存のngrokとサーバープロセスを停止
+2. ngrokを起動してHTTPS URLを取得
+3. Twilio TwiML AppのVoice Request URLを自動更新
+4. Node.jsサーバーを起動
+
+**停止**:
+```bash
+./stop.sh
+```
+
+または `Ctrl+C` でサーバーを停止後、別ターミナルで `./stop.sh` を実行
+
+#### 方法2: 手動起動
+
+**ngrokの起動**:
+```bash
+ngrok http 3000
+```
+
+ngrokのHTTPS URLを確認して、Twilio Console → **Voice** → **TwiML Apps**でVoice Request URLを手動更新:
+```
+https://your-ngrok-url.ngrok-free.app/voice
+```
+
+**サーバーの起動**:
+```bash
+npm start
+```
+
+開発モード（nodemon使用）:
+```bash
+npm run dev
+```
+
+### 5. アプリケーションへのアクセス
+
+ブラウザで `http://localhost:3000` にアクセスします。
+
+## 使用方法
+
+1. **フォーム入力**:
+   - 名前を入力
+   - メールアドレスを入力
+   - 問い合わせ種別を選択
+
+2. **通話開始**:
+   - 「電話で問い合わせる」ボタンをクリック
+   - ブラウザがマイクへのアクセスを要求したら許可
+   - 通話が開始されます
+
+3. **AIアシスタントとの対話**（「商品について」を選択した場合）:
+   - 音声で商品に関する質問をします
+   - AIアシスタントが在庫を検索し、回答します
+   - 例: 「カシミアセーターのグレーはありますか？」
+
+4. **通話終了**:
+   - 「通話を終了」ボタンをクリック、または通話を切ります
+
+## アーキテクチャ
+
+```
+ブラウザ (Twilio Voice SDK v2)
+    ↓
+Twilio Voice
+    ↓
+サーバー (/voice endpoint)
+    ↓
+WebSocket (/media-stream)
+    ↓
+OpenAI Realtime API
+    ↓
+Function Calling (search_inventory)
+    ↓
+data/inventory.json
+```
+
+## ファイル構成
+
+```
+.
+├── server.js                 # バックエンドサーバー
+├── package.json             # 依存関係
+├── .env.example             # 環境変数テンプレート
+├── start.sh                 # 起動スクリプト（ngrok + サーバー）
+├── stop.sh                  # 停止スクリプト
+├── data/
+│   └── inventory.json       # 在庫データ
+└── public/
+    ├── index.html           # フロントエンドHTML
+    ├── style.css            # スタイルシート
+    └── app.js               # Twilio Voice SDK統合
+```
+
+## Function Calling
+
+AIアシスタントは以下の関数を使用できます：
+
+### `search_inventory`
+
+商品の在庫を検索します。
+
+**パラメータ**:
+- `name` (string): 商品名（部分一致）
+- `category` (string): カテゴリ（トップス、ボトムス、アウター）
+- `color` (string): カラー
+- `size` (string): サイズ
+
+**戻り値**:
+```json
+[
+  {
+    "id": "UA-001",
+    "name": "カシミアセーター",
+    "category": "トップス",
+    "color": ["ブラック", "グレー", "ネイビー"],
+    "availableSizes": ["S(在庫: 5)", "M(在庫: 12)", "L(在庫: 8)"],
+    "price": "¥28,000"
+  }
+]
+```
+
+### `reserve_product`
+
+商品を取り置きします。お客様が取り置きを希望された場合に使用します。
+
+**パラメータ**:
+- `product_id` (string, 必須): 商品ID（例: UA-001）
+- `product_name` (string, 必須): 商品名
+- `color` (string): カラー
+- `size` (string): サイズ
+- `customer_name` (string, 必須): お客様のお名前
+
+**戻り値**:
+```json
+{
+  "success": true,
+  "reservation_id": "RES-1234567890123",
+  "message": "カシミアセーター（グレー、M）の取り置きが完了しました。"
+}
+```
+
+**動作フロー**:
+1. 在庫確認（`search_inventory`）後、在庫がある場合に実行
+2. 取り置き情報をサーバーログに記録
+3. AIが取り置き完了メッセージをお客様に伝える
+4. **AIの応答が完全に終了してから**自動的に通話を終了（`response.done`イベント検知）
+5. 音声再生完了を待って2秒後にWebSocket切断
+
+## 会話フロー（商品について）
+
+1. **挨拶**: AIから「こんにちは、どのようなご用件でしょうか？」
+2. **商品確認**: お客様が商品の詳細（商品名、カラー、サイズ）を伝える
+3. **在庫検索**: AIが`search_inventory`で在庫を確認
+4. **取り置き確認**: 在庫がある場合、「取り置きをされますか？」と確認
+5. **取り置き処理**: お客様が希望される場合、`reserve_product`で取り置き
+6. **終了挨拶**: 「本日はUnited Arrowsをご利用いただきありがとうございました。それでは失礼いたします。」
+7. **自動切断**: AIが話し終わってから2秒後に通話終了（自然な終了）
+
+## トラブルシューティング
+
+### start.shスクリプトが実行できない
+- スクリプトに実行権限があるか確認: `chmod +x start.sh stop.sh`
+- ngrokがインストールされているか確認: `ngrok version`
+- .envファイルが正しく設定されているか確認
+
+### ngrok URLが取得できない
+- ngrokが正常に起動しているか確認: `ps aux | grep ngrok`
+- ngrok.logを確認: `cat ngrok.log`
+- ngrok APIが応答しているか確認: `curl http://localhost:4040/api/tunnels`
+
+### TwiML App URLの更新に失敗する
+- Twilio認証情報が正しいか確認（ACCOUNT_SID、AUTH_TOKEN）
+- TwiML App SIDが正しいか確認
+- Twilio Consoleで手動更新も可能
+
+### マイクが使用できない
+- ブラウザの設定でマイクへのアクセスを許可してください
+- HTTPSを使用していることを確認してください（ngrokは自動的にHTTPS）
+
+### 通話が接続されない
+- TwiML AppのVoice Request URLが正しく設定されているか確認
+- ngrokのURLが最新のものか確認（ngrok再起動時にURLが変わります）
+- サーバーログでエラーを確認
+
+### AIが応答しない
+- OpenAI APIキーが正しく設定されているか確認
+- OpenAI Realtime APIへのアクセス権限があるか確認
+- サーバーログでWebSocket接続エラーを確認
+
+### ノイズを拾いやすい・誤反応する
+**現在の設定（ノイズ対策済み）**:
+- `threshold: 0.6` - ノイズ感度を下げる（デフォルト0.5より厳しい）
+- `silence_duration_ms: 800` - 短いノイズを無視（デフォルト500より長い）
+- `prefix_padding_ms: 200` - 発話開始前のバッファを短縮
+
+**さらに改善する場合**:
+
+server.js:196-201の`turn_detection`設定を調整：
+
+```javascript
+turn_detection: {
+  type: 'server_vad',
+  threshold: 0.7,              // より高く（0.6→0.7）ノイズに強く
+  prefix_padding_ms: 100,      // より短く（200→100）
+  silence_duration_ms: 1000    // より長く（800→1000）
+}
+```
+
+**推奨環境**:
+- 静かな環境で通話する
+- ヘッドセットやイヤホンマイクを使用する
+- マイクの入力レベルを適切に調整する
+
+## 本番環境へのデプロイ
+
+本番環境では、以下を推奨します：
+
+1. **HTTPS**: SSL証明書を取得してHTTPSを有効化
+2. **環境変数**: セキュアな方法で環境変数を管理
+3. **ログ**: 適切なログ管理システムを導入
+4. **エラーハンドリング**: より詳細なエラーハンドリングとユーザーフィードバック
+
+## ライセンス
+
+MIT

@@ -1,0 +1,52 @@
+2026-02-04T04:43:27.483Z [DEBUG] Failed to check enabledPlatforms: TypeError: undefined is not an object (evaluating 'lZ.join')
+2026-02-04T04:43:27.575Z [DEBUG] Watching for changes in setting files /Users/mitsuharunakamura/.claude, /Users/mitsuharunakamura/Documents/Projects/Twilio_Demos/task-management-tool/.claude...
+2026-02-04T04:43:27.577Z [DEBUG] [init] configureGlobalMTLS starting
+2026-02-04T04:43:27.577Z [DEBUG] [init] configureGlobalMTLS complete
+2026-02-04T04:43:27.577Z [DEBUG] [init] configureGlobalAgents starting
+2026-02-04T04:43:27.577Z [DEBUG] [init] configureGlobalAgents complete
+2026-02-04T04:43:27.581Z [DEBUG] Applying permission update: Adding 18 allow rule(s) to destination 'localSettings': ["Bash(npx create-next-app:*)","Bash(pnpm add:*)","Bash(pnpm tsc:*)","Bash(pnpm build:*)","Bash(vercel --version:*)","Bash(vercel whoami:*)","Bash(vercel project add:*)","Bash(vercel link:*)","Bash(vercel stores add kv task-management-kv)","Bash(vercel stores ls:*)","Bash(vercel integration add:*)","Bash(vercel env pull:*)","Bash(openssl rand:*)","Bash(vercel env ls:*)","Bash(vercel:*)","Bash(curl:*)","Bash(pkill:*)","Bash(printf:*)"]
+2026-02-04T04:43:27.581Z [DEBUG] [STARTUP] Loading MCP configs...
+2026-02-04T04:43:27.582Z [DEBUG] [ToolSearch:optimistic] mode=tst-auto, ENABLE_TOOL_SEARCH=undefined, result=true
+2026-02-04T04:43:27.582Z [DEBUG] [STARTUP] Running setup()...
+2026-02-04T04:43:27.582Z [DEBUG] Found 0 plugins (0 enabled, 0 disabled)
+2026-02-04T04:43:27.583Z [DEBUG] Loading skills from: managed=/Library/Application Support/ClaudeCode/.claude/skills, user=/Users/mitsuharunakamura/.claude/skills, project=[]
+2026-02-04T04:43:27.591Z [ERROR] Error: Error: ENOENT: no such file or directory, scandir '/Library/Application Support/ClaudeCode/.claude/skills'
+    at readdirSync (unknown)
+    at <anonymous> (/$bunfs/root/claude:12:2063)
+    at rW (/$bunfs/root/claude:11:35454)
+    at readdirSync (/$bunfs/root/claude:12:2024)
+    at DQR (/$bunfs/root/claude:1758:380)
+    at DQR (/$bunfs/root/claude:1758:1350)
+    at <anonymous> (/$bunfs/root/claude:1758:4670)
+    at <anonymous> (/$bunfs/root/claude:1758:5401)
+    at A (/$bunfs/root/claude:11:7259)
+    at mb8 (/$bunfs/root/claude:4820:4342)
+2026-02-04T04:43:27.591Z [DEBUG] Error log sink initialized
+2026-02-04T04:43:27.594Z [DEBUG] Using cached index entry for session: bf3781cb-73d7-40db-af7f-d4a68fd86063
+2026-02-04T04:43:27.594Z [DEBUG] getPluginSkills: Processing 0 enabled plugins
+2026-02-04T04:43:27.594Z [DEBUG] Total plugin skills loaded: 0
+2026-02-04T04:43:27.594Z [DEBUG] Total plugin commands loaded: 0
+2026-02-04T04:43:27.594Z [DEBUG] Registered 0 hooks from 0 plugins
+2026-02-04T04:43:27.604Z [DEBUG] [claudeai-mcp] Checking gate (cached)...
+2026-02-04T04:43:27.604Z [DEBUG] [claudeai-mcp] Gate returned: false
+2026-02-04T04:43:27.604Z [DEBUG] [claudeai-mcp] Disabled via gate
+2026-02-04T04:43:27.609Z [DEBUG] Loaded 22 unique skills (managed: 0, user: 22, project: 0, legacy commands: 0)
+2026-02-04T04:43:27.609Z [DEBUG] getSkills returning: 22 skill dir commands, 0 plugin skills, 1 bundled skills
+2026-02-04T04:43:27.618Z [DEBUG] [STARTUP] setup() completed in 36ms
+2026-02-04T04:43:27.618Z [DEBUG] [STARTUP] Loading commands and agents...
+2026-02-04T04:43:27.618Z [DEBUG] Total plugin agents loaded: 0
+2026-02-04T04:43:27.618Z [DEBUG] [STARTUP] Commands and agents loaded in 0ms
+2026-02-04T04:43:27.619Z [DEBUG] [LSP MANAGER] initializeLspServerManager() called
+2026-02-04T04:43:27.619Z [DEBUG] [LSP MANAGER] Created manager instance, state=pending
+2026-02-04T04:43:27.619Z [DEBUG] [LSP MANAGER] Starting async initialization (generation 1)
+2026-02-04T04:43:27.619Z [DEBUG] [API:request] Creating client, ANTHROPIC_CUSTOM_HEADERS present: false, has Authorization header: false
+2026-02-04T04:43:27.619Z [DEBUG] [API:auth] OAuth token check starting
+2026-02-04T04:43:27.622Z [DEBUG] Total LSP servers loaded: 0
+2026-02-04T04:43:27.622Z [DEBUG] [STARTUP] MCP configs loaded in 41ms
+2026-02-04T04:43:27.635Z [DEBUG] MCP server "chrome-devtools": Starting connection with timeout of 30000ms
+2026-02-04T04:43:27.645Z [DEBUG] [LSP SERVER MANAGER] getAllLspServers returned 0 server(s)
+2026-02-04T04:43:27.645Z [DEBUG] LSP manager initialized with 0 servers
+2026-02-04T04:43:27.645Z [DEBUG] LSP server manager initialized successfully
+2026-02-04T04:43:27.645Z [DEBUG] LSP notification handlers registered successfully for all 0 server(s)
+2026-02-04T04:43:27.645Z [DEBUG] [API:auth] OAuth token check complete
+2026-02-04T04:43:27.670Z [DEBUG] Watching for changes in skill/command directories: /Users/mitsuharunakamura/.claude/skills...

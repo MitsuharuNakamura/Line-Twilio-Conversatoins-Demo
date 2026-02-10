@@ -1,0 +1,20 @@
+[
+  {
+    "content": "OpenAI API KEYの設定確認",
+    "status": "pending",
+    "priority": "high",
+    "id": "1"
+  },
+  {
+    "content": "OpenAI APIレスポンスのエラーハンドリング確認",
+    "status": "pending",
+    "priority": "high",
+    "id": "2"
+  },
+  {
+    "content": "WebSocketメッセージ送信処理の確認",
+    "status": "pending",
+    "priority": "medium",
+    "id": "3"
+  }
+]

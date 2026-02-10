@@ -1,0 +1,18 @@
+{
+  "name": "line-twilio-chat",
+  "version": "1.0.0",
+  "private": true,
+  "description": "LINE × Twilio Conversations 統合チャットプラットフォーム",
+  "scripts": {
+    "dev": "pnpm --parallel --filter middleware --filter web-ui dev",
+    "dev:middleware": "pnpm --filter middleware dev",
+    "dev:web": "pnpm --filter web-ui dev",
+    "build": "pnpm --recursive build",
+    "typecheck": "pnpm --recursive typecheck",
+    "deploy:middleware": "pnpm --filter middleware deploy"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.0"
+  },
+  "packageManager": "pnpm@8.15.0"
+}

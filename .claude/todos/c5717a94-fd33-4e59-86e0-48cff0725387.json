@@ -1,0 +1,68 @@
+[
+  {
+    "content": "調査: 声変換処理の実装の問題点を特定する",
+    "status": "completed",
+    "priority": "high",
+    "id": "1"
+  },
+  {
+    "content": "改善: ピッチシフト処理の実装方法を修正する",
+    "status": "completed",
+    "priority": "high",
+    "id": "2"
+  },
+  {
+    "content": "改善: ロボット声エフェクトの実装を変更する",
+    "status": "completed",
+    "priority": "high",
+    "id": "3"
+  },
+  {
+    "content": "改善: ピッチシフトのセミトーンパラメータを調整",
+    "status": "completed",
+    "priority": "medium",
+    "id": "4"
+  },
+  {
+    "content": "改垄: エフェクトの音量と強度を増大",
+    "status": "completed",
+    "priority": "high",
+    "id": "5"
+  },
+  {
+    "content": "修正: Twilio Deviceの初期化時にcustomGetUserMedia関数を追加",
+    "status": "completed",
+    "priority": "high",
+    "id": "6"
+  },
+  {
+    "content": "修正: 相手の音声が聞こえない問題を修正",
+    "status": "completed",
+    "priority": "high",
+    "id": "7"
+  },
+  {
+    "content": "修正: setupVoiceProcessing関数を改善して活用",
+    "status": "completed",
+    "priority": "high",
+    "id": "8"
+  },
+  {
+    "content": "修正: 発信側の音声が届かない問題を解決",
+    "status": "completed",
+    "priority": "high",
+    "id": "9"
+  },
+  {
+    "content": "修正: エラー処理とデバッグログを強化",
+    "status": "completed",
+    "priority": "medium",
+    "id": "10"
+  },
+  {
+    "content": "テスト: 修正した声変換機能の勔作確認",
+    "status": "pending",
+    "priority": "medium",
+    "id": "11"
+  }
+]

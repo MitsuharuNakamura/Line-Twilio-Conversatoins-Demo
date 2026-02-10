@@ -1,0 +1,160 @@
+import SwiftUI
+import AVKit
+
+struct VideoListView: View {
+    @ObservedObject var videoManager: VideoManager
+    @State private var selectedVideo: Video?
+    @State private var showPlayer = false
+
+    private let columns = [
+        GridItem(.flexible(), spacing: 16),
+        GridItem(.flexible(), spacing: 16)
+    ]
+
+    var body: some View {
+        NavigationView {
+            ZStack {
+                // Netflix風のダークな背景
+                Color.black.ignoresSafeArea()
+
+                if videoManager.videos.isEmpty {
+                    VStack(spacing: 20) {
+                        Image(systemName: "film.stack")
+                            .font(.system(size: 60))
+                            .foregroundColor(.gray)
+                        Text("動画がありません")
+                            .font(.title2)
+                            .foregroundColor(.white)
+                        Text("videosフォルダに動画を追加してください")
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                    }
+                } else {
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 20) {
+                            // ヘッダー
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("マイビデオ")
+                                    .font(.largeTitle)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.white)
+
+                                Text("\(videoManager.videos.count)本の動画")
+                                    .font(.subheadline)
+                                    .foregroundColor(.gray)
+                            }
+                            .padding(.horizontal)
+                            .padding(.top, 20)
+
+                            // グリッドビュー
+                            LazyVGrid(columns: columns, spacing: 16) {
+                                ForEach(videoManager.videos) { video in
+                                    VideoThumbnailCard(video: video)
+                                        .onTapGesture {
+                                            selectedVideo = video
+                                            showPlayer = true
+                                        }
+                                }
+                            }
+                            .padding(.horizontal)
+                        }
+                        .padding(.bottom, 20)
+                    }
+                }
+            }
+            .navigationBarHidden(true)
+        }
+        .fullScreenCover(isPresented: $showPlayer) {
+            if let video = selectedVideo {
+                VideoPlayerView(video: video, isPresented: $showPlayer)
+            }
+        }
+    }
+}
+
+struct VideoThumbnailCard: View {
+    let video: Video
+    @State private var thumbnail: UIImage?
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            // サムネイル
+            ZStack {
+                if let thumbnail = thumbnail {
+                    Image(uiImage: thumbnail)
+                        .resizable()
+                        .aspectRatio(16/9, contentMode: .fill)
+                        .frame(height: 100)
+                        .clipped()
+                        .cornerRadius(8)
+                } else {
+                    Rectangle()
+                        .fill(
+                            LinearGradient(
+                                gradient: Gradient(colors: [
+                                    Color(red: 0.2, green: 0.2, blue: 0.3),
+                                    Color(red: 0.1, green: 0.1, blue: 0.2)
+                                ]),
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(height: 100)
+                        .cornerRadius(8)
+                        .overlay(
+                            Image(systemName: "play.circle.fill")
+                                .font(.system(size: 40))
+                                .foregroundColor(.white.opacity(0.7))
+                        )
+                }
+            }
+            .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(Color.white.opacity(0.1), lineWidth: 1)
+            )
+            .shadow(color: .black.opacity(0.3), radius: 8, x: 0, y: 4)
+
+            // タイトル
+            Text(video.displayTitle)
+                .font(.subheadline)
+                .fontWeight(.medium)
+                .foregroundColor(.white)
+                .lineLimit(2)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .onAppear {
+            generateThumbnail()
+        }
+    }
+
+    private func generateThumbnail() {
+        guard let videoURL = Bundle.main.url(
+            forResource: "videos/\(video.filename.components(separatedBy: ".").dropLast().joined(separator: "."))",
+            withExtension: video.filename.components(separatedBy: ".").last
+        ) else {
+            return
+        }
+
+        let asset = AVAsset(url: videoURL)
+        let imageGenerator = AVAssetImageGenerator(asset: asset)
+        imageGenerator.appliesPreferredTrackTransform = true
+
+        let time = CMTime(seconds: 1, preferredTimescale: 60)
+
+        DispatchQueue.global(qos: .userInitiated).async {
+            do {
+                let cgImage = try imageGenerator.copyCGImage(at: time, actualTime: nil)
+                let uiImage = UIImage(cgImage: cgImage)
+                DispatchQueue.main.async {
+                    self.thumbnail = uiImage
+                }
+            } catch {
+                print("Error generating thumbnail: \(error)")
+            }
+        }
+    }
+}
+
+#Preview {
+    VideoListView(videoManager: VideoManager())
+}

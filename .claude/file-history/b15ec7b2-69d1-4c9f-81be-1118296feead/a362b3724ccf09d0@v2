@@ -1,0 +1,265 @@
+// Scene management
+let currentScene = 0;
+const totalScenes = 7;
+let isPlaying = false;
+let animationInterval = null;
+const sceneDuration = 5000; // 5 seconds per scene
+
+// Scene timings (in milliseconds)
+const sceneTiming = {
+    0: 4000,  // Opening - 4 seconds
+    1: 6000,  // Problem - 6 seconds
+    2: 7000,  // Solution - 7 seconds
+    3: 8000,  // Features - 8 seconds
+    4: 6000,  // Use Cases - 6 seconds
+    5: 7000,  // CTA - 7 seconds
+    6: 5000   // Closing - 5 seconds
+};
+
+// Get all scenes
+const scenes = document.querySelectorAll('.scene');
+const progressFill = document.querySelector('.progress-fill');
+const playBtn = document.getElementById('playBtn');
+const pauseBtn = document.getElementById('pauseBtn');
+const restartBtn = document.getElementById('restartBtn');
+
+// Initialize
+function init() {
+    showScene(0);
+    updateProgress();
+    setupControls();
+}
+
+// Show specific scene
+function showScene(sceneIndex) {
+    scenes.forEach((scene, index) => {
+        if (index === sceneIndex) {
+            scene.classList.add('active');
+            animateSceneContent(scene, index);
+        } else {
+            scene.classList.remove('active');
+        }
+    });
+    currentScene = sceneIndex;
+    updateProgress();
+}
+
+// Animate scene content
+function animateSceneContent(scene, sceneIndex) {
+    const elements = scene.querySelectorAll('.fade-in, .fade-in-up, .slide-in, .slide-in-left');
+
+    elements.forEach((element, index) => {
+        element.style.animation = 'none';
+        setTimeout(() => {
+            element.style.animation = '';
+        }, 10);
+    });
+}
+
+// Next scene
+function nextScene() {
+    if (currentScene < totalScenes - 1) {
+        showScene(currentScene + 1);
+    } else {
+        stop();
+        showScene(0);
+    }
+}
+
+// Update progress bar
+function updateProgress() {
+    const progress = ((currentScene + 1) / totalScenes) * 100;
+    progressFill.style.width = `${progress}%`;
+}
+
+// Play animation
+function play() {
+    if (isPlaying) return;
+
+    isPlaying = true;
+    playBtn.disabled = true;
+    pauseBtn.disabled = false;
+
+    // Start from current scene
+    const startScene = currentScene;
+
+    function playNextScene() {
+        if (!isPlaying) return;
+
+        if (currentScene < totalScenes - 1) {
+            nextScene();
+            const duration = sceneTiming[currentScene] || sceneDuration;
+            animationInterval = setTimeout(playNextScene, duration);
+        } else {
+            // End of video
+            setTimeout(() => {
+                stop();
+                restart();
+            }, sceneTiming[currentScene] || sceneDuration);
+        }
+    }
+
+    // Start playing after current scene duration
+    const duration = sceneTiming[currentScene] || sceneDuration;
+    animationInterval = setTimeout(playNextScene, duration);
+}
+
+// Pause animation
+function pause() {
+    isPlaying = false;
+    playBtn.disabled = false;
+    pauseBtn.disabled = true;
+
+    if (animationInterval) {
+        clearTimeout(animationInterval);
+        animationInterval = null;
+    }
+}
+
+// Stop animation
+function stop() {
+    pause();
+}
+
+// Restart animation
+function restart() {
+    stop();
+    currentScene = 0;
+    showScene(0);
+    updateProgress();
+}
+
+// Setup controls
+function setupControls() {
+    playBtn.addEventListener('click', play);
+    pauseBtn.addEventListener('click', pause);
+    restartBtn.addEventListener('click', () => {
+        restart();
+        play();
+    });
+
+    // Keyboard controls
+    document.addEventListener('keydown', (e) => {
+        switch(e.key) {
+            case ' ': // Spacebar
+                e.preventDefault();
+                if (isPlaying) {
+                    pause();
+                } else {
+                    play();
+                }
+                break;
+            case 'ArrowRight':
+                e.preventDefault();
+                pause();
+                nextScene();
+                break;
+            case 'ArrowLeft':
+                e.preventDefault();
+                pause();
+                if (currentScene > 0) {
+                    showScene(currentScene - 1);
+                }
+                break;
+            case 'r':
+            case 'R':
+                e.preventDefault();
+                restart();
+                break;
+            case 'Enter':
+                e.preventDefault();
+                restart();
+                play();
+                break;
+        }
+    });
+
+    // Auto-start on load (optional)
+    setTimeout(() => {
+        play();
+    }, 1000);
+}
+
+// Click on scene to advance (optional)
+scenes.forEach((scene, index) => {
+    scene.addEventListener('click', (e) => {
+        // Only if not clicking on buttons
+        if (!e.target.classList.contains('btn-primary') &&
+            !e.target.classList.contains('btn-secondary')) {
+            pause();
+            nextScene();
+        }
+    });
+});
+
+// Button hover effects with sound (visual feedback)
+const buttons = document.querySelectorAll('.btn-primary, .btn-secondary');
+buttons.forEach(button => {
+    button.addEventListener('mouseenter', function() {
+        this.style.transform = 'translateY(-5px) scale(1.05)';
+    });
+
+    button.addEventListener('mouseleave', function() {
+        this.style.transform = 'translateY(0) scale(1)';
+    });
+
+    button.addEventListener('click', function() {
+        // Visual feedback
+        this.style.transform = 'translateY(0) scale(0.95)';
+        setTimeout(() => {
+            this.style.transform = 'translateY(-5px) scale(1.05)';
+        }, 100);
+    });
+});
+
+// Parallax effect on mouse move (subtle)
+document.addEventListener('mousemove', (e) => {
+    const moveX = (e.clientX - window.innerWidth / 2) * 0.01;
+    const moveY = (e.clientY - window.innerHeight / 2) * 0.01;
+
+    const activeScene = document.querySelector('.scene.active');
+    if (activeScene) {
+        const elements = activeScene.querySelectorAll('.solution-card, .use-case, .feature-item');
+        elements.forEach((element, index) => {
+            const depth = (index + 1) * 0.5;
+            element.style.transform = `translate(${moveX * depth}px, ${moveY * depth}px)`;
+        });
+    }
+});
+
+// Initialize on DOM load
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+} else {
+    init();
+}
+
+// Responsive scaling
+function scaleVideo() {
+    const container = document.querySelector('.video-container');
+    const windowWidth = window.innerWidth;
+    const windowHeight = window.innerHeight;
+
+    const scaleX = windowWidth / 1920;
+    const scaleY = windowHeight / 1080;
+    const scale = Math.min(scaleX, scaleY);
+
+    container.style.transform = `scale(${scale})`;
+    container.style.transformOrigin = 'top left';
+    container.style.left = `${(windowWidth - 1920 * scale) / 2}px`;
+    container.style.top = `${(windowHeight - 1080 * scale) / 2}px`;
+}
+
+window.addEventListener('resize', scaleVideo);
+window.addEventListener('load', scaleVideo);
+
+// Export video info
+console.log('🎬 Twilio Marketing Video');
+console.log('📊 Total Duration: ~43 seconds');
+console.log('🎞️ Scenes: 7');
+console.log('⌨️ Controls:');
+console.log('  - Space: Play/Pause');
+console.log('  - Arrow Right: Next Scene');
+console.log('  - Arrow Left: Previous Scene');
+console.log('  - R: Restart');
+console.log('  - Enter: Restart and Play');

@@ -1,0 +1,14 @@
+[
+  {
+    "content": "Fix Gemini API response parsing error",
+    "status": "completed",
+    "priority": "high",
+    "id": "1"
+  },
+  {
+    "content": "Remove exposed API key from README.md",
+    "status": "completed",
+    "priority": "high",
+    "id": "2"
+  }
+]

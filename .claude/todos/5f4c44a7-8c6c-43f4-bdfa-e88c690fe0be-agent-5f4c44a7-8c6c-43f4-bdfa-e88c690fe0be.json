@@ -1,0 +1,17 @@
+[
+  {
+    "content": "Install Twilio Serverless plugin if needed",
+    "status": "completed",
+    "activeForm": "Installing Twilio Serverless plugin"
+  },
+  {
+    "content": "Deploy the Function to Twilio",
+    "status": "in_progress",
+    "activeForm": "Deploying the Function to Twilio"
+  },
+  {
+    "content": "Verify deployment and get Function URL",
+    "status": "pending",
+    "activeForm": "Verifying deployment and getting Function URL"
+  }
+]

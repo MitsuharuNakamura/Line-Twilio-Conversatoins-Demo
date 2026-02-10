@@ -1,0 +1,93 @@
+//
+//  RSSService.swift
+//  NewsSwipe
+//
+//  Created by Claude on 2026-01-24.
+//
+
+import Foundation
+import FeedKit
+
+class RSSService {
+    func fetchGoogleNewsRSS(category: Category) async throws -> [Article] {
+        guard let url = URL(string: category.googleNewsRSSURL) else {
+            throw RSSError.invalidURL
+        }
+
+        return try await withCheckedThrowingContinuation { continuation in
+            let parser = FeedParser(URL: url)
+
+            parser.parseAsync { result in
+                switch result {
+                case .success(let feed):
+                    let articles = self.parseRSSFeed(feed, category: category)
+                    continuation.resume(returning: articles)
+
+                case .failure(let error):
+                    continuation.resume(throwing: error)
+                }
+            }
+        }
+    }
+
+    private func parseRSSFeed(_ feed: Feed, category: Category) -> [Article] {
+        var articles: [Article] = []
+
+        switch feed {
+        case .rss(let rssFeed):
+            articles = rssFeed.items?.compactMap { item in
+                guard let title = item.title,
+                      let link = item.link else {
+                    return nil
+                }
+
+                return Article(
+                    title: title,
+                    summary: item.description?.stripHTML() ?? "詳細は記事をご覧ください",
+                    imageURL: item.enclosure?.attributes?.url ?? item.media?.mediaContents?.first?.attributes?.url,
+                    articleURL: link,
+                    sourceName: rssFeed.title ?? "Google News",
+                    publishedDate: item.pubDate ?? Date(),
+                    category: category
+                )
+            } ?? []
+
+        case .atom(let atomFeed):
+            articles = atomFeed.entries?.compactMap { entry in
+                guard let title = entry.title,
+                      let link = entry.links?.first?.attributes?.href else {
+                    return nil
+                }
+
+                return Article(
+                    title: title,
+                    summary: entry.summary?.value?.stripHTML() ?? "詳細は記事をご覧ください",
+                    imageURL: nil,
+                    articleURL: link,
+                    sourceName: atomFeed.title ?? "Google News",
+                    publishedDate: entry.published ?? Date(),
+                    category: category
+                )
+            } ?? []
+
+        case .json:
+            break
+        }
+
+        return articles
+    }
+}
+
+enum RSSError: Error {
+    case invalidURL
+    case parsingError
+}
+
+// MARK: - String Extension
+
+extension String {
+    func stripHTML() -> String {
+        return self.replacingOccurrences(of: "<[^>]+>", with: "", options: .regularExpression, range: nil)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+}

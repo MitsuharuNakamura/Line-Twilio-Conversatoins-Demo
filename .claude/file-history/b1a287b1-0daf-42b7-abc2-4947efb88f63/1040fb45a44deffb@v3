@@ -1,0 +1,86 @@
+//
+//  Category.swift
+//  NewsSwipe
+//
+//  Created by Claude on 2026-01-24.
+//
+
+import Foundation
+
+enum Category: String, CaseIterable, Identifiable, Codable {
+    case technology = "テクノロジー"
+    case business = "ビジネス"
+    case sports = "スポーツ"
+    case entertainment = "エンタメ"
+    case science = "科学"
+    case health = "健康"
+
+    var id: String { rawValue }
+
+    var newsAPICategory: String {
+        switch self {
+        case .technology: return "technology"
+        case .business: return "business"
+        case .sports: return "sports"
+        case .entertainment: return "entertainment"
+        case .science: return "science"
+        case .health: return "health"
+        }
+    }
+
+    var rssURLs: [String] {
+        switch self {
+        case .technology:
+            return [
+                "https://news.google.com/rss/topics/CAAqJggKIiBDQkFTRWdvSUwyMHZNRGRqTVhZU0FtcGhHZ0pLVUNnQVAB",
+                "https://rss.itmedia.co.jp/rss/2.0/itmedia_all.xml",
+                "https://gigazine.net/news/rss_2.0/",
+                "https://b.hatena.ne.jp/hotentry/it.rss"
+            ]
+        case .business:
+            return [
+                "https://news.google.com/rss/topics/CAAqJggKIiBDQkFTRWdvSUwyMHZNRGx6TVdZU0FtcGhHZ0pLVUNnQVAB",
+                "https://news.yahoo.co.jp/rss/topics/business.xml"
+            ]
+        case .sports:
+            return [
+                "https://news.google.com/rss/topics/CAAqJggKIiBDQkFTRWdvSUwyMHZNRFp1ZEdvU0FtcGhHZ0pLVUNnQVAB",
+                "https://news.yahoo.co.jp/rss/topics/sports.xml"
+            ]
+        case .entertainment:
+            return [
+                "https://news.google.com/rss/topics/CAAqJggKIiBDQkFTRWdvSUwyMHZNREpxYW5RU0FtcGhHZ0pLVUNnQVAB",
+                "https://news.yahoo.co.jp/rss/topics/entertainment.xml",
+                "https://b.hatena.ne.jp/hotentry/fun.rss"
+            ]
+        case .science:
+            return [
+                "https://news.google.com/rss/topics/CAAqJggKIiBDQkFTRWdvSUwyMHZNRFp0Y1RjU0FtcGhHZ0pLVUNnQVAB",
+                "https://gigazine.net/news/rss_2.0/",
+                "https://b.hatena.ne.jp/hotentry/knowledge.rss"
+            ]
+        case .health:
+            return [
+                "https://news.google.com/rss/topics/CAAqIQgKIhtDQkFTRGdvSUwyMHZNR3QwTlRFU0FtcGhLQUFQAQ",
+                "https://news.yahoo.co.jp/rss/topics/health.xml"
+            ]
+        }
+    }
+
+    var defaultImageURL: String {
+        switch self {
+        case .technology:
+            return "https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&h=600&fit=crop"
+        case .business:
+            return "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&h=600&fit=crop"
+        case .sports:
+            return "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=800&h=600&fit=crop"
+        case .entertainment:
+            return "https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=800&h=600&fit=crop"
+        case .science:
+            return "https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=800&h=600&fit=crop"
+        case .health:
+            return "https://images.unsplash.com/photo-1505576399279-565b52d4ac71?w=800&h=600&fit=crop"
+        }
+    }
+}

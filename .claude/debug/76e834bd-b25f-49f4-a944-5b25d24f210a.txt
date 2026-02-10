@@ -1,0 +1,51 @@
+2026-02-02T12:32:05.956Z [DEBUG] Failed to check enabledPlatforms: TypeError: undefined is not an object (evaluating 'lZ.join')
+2026-02-02T12:32:05.987Z [DEBUG] Watching for changes in setting files /Users/mitsuharunakamura/.claude, /Users/mitsuharunakamura/Documents/Projects/Twilio_Demos/UA-Webphone-demo/.claude...
+2026-02-02T12:32:05.989Z [DEBUG] [init] configureGlobalMTLS starting
+2026-02-02T12:32:05.989Z [DEBUG] [init] configureGlobalMTLS complete
+2026-02-02T12:32:05.989Z [DEBUG] [init] configureGlobalAgents starting
+2026-02-02T12:32:05.989Z [DEBUG] [init] configureGlobalAgents complete
+2026-02-02T12:32:05.991Z [DEBUG] Applying permission update: Adding 8 allow rule(s) to destination 'localSettings': ["Bash(pnpm create:*)","Bash(pnpm init:*)","Bash(pnpm add:*)","Bash(pnpm build:*)","Bash(vercel --version:*)","Bash(vercel --yes:*)","Bash(vercel login:*)","Bash(vercel --prod:*)"]
+2026-02-02T12:32:05.991Z [DEBUG] [STARTUP] Loading MCP configs...
+2026-02-02T12:32:05.992Z [DEBUG] [ToolSearch:optimistic] mode=tst-auto, ENABLE_TOOL_SEARCH=undefined, result=true
+2026-02-02T12:32:05.992Z [DEBUG] [STARTUP] Running setup()...
+2026-02-02T12:32:05.992Z [DEBUG] Found 0 plugins (0 enabled, 0 disabled)
+2026-02-02T12:32:05.992Z [DEBUG] Loading skills from: managed=/Library/Application Support/ClaudeCode/.claude/skills, user=/Users/mitsuharunakamura/.claude/skills, project=[/Users/mitsuharunakamura/Documents/Projects/Twilio_Demos/UA-Webphone-demo/.claude/skills]
+2026-02-02T12:32:05.999Z [ERROR] Error: Error: ENOENT: no such file or directory, scandir '/Library/Application Support/ClaudeCode/.claude/skills'
+    at readdirSync (unknown)
+    at <anonymous> (/$bunfs/root/claude:12:2063)
+    at rW (/$bunfs/root/claude:11:35454)
+    at readdirSync (/$bunfs/root/claude:12:2024)
+    at DQR (/$bunfs/root/claude:1758:380)
+    at DQR (/$bunfs/root/claude:1758:1350)
+    at <anonymous> (/$bunfs/root/claude:1758:4670)
+    at <anonymous> (/$bunfs/root/claude:1758:5401)
+    at A (/$bunfs/root/claude:11:7259)
+    at mb8 (/$bunfs/root/claude:4820:4342)
+2026-02-02T12:32:05.999Z [DEBUG] Error log sink initialized
+2026-02-02T12:32:06.001Z [DEBUG] getPluginSkills: Processing 0 enabled plugins
+2026-02-02T12:32:06.001Z [DEBUG] Total plugin skills loaded: 0
+2026-02-02T12:32:06.001Z [DEBUG] Total plugin commands loaded: 0
+2026-02-02T12:32:06.001Z [DEBUG] Registered 0 hooks from 0 plugins
+2026-02-02T12:32:06.007Z [DEBUG] [claudeai-mcp] Checking gate (cached)...
+2026-02-02T12:32:06.007Z [DEBUG] [claudeai-mcp] Gate returned: false
+2026-02-02T12:32:06.007Z [DEBUG] [claudeai-mcp] Disabled via gate
+2026-02-02T12:32:06.010Z [DEBUG] Loaded 43 unique skills (managed: 0, user: 21, project: 22, legacy commands: 0)
+2026-02-02T12:32:06.010Z [DEBUG] getSkills returning: 43 skill dir commands, 0 plugin skills, 1 bundled skills
+2026-02-02T12:32:06.014Z [DEBUG] [STARTUP] setup() completed in 22ms
+2026-02-02T12:32:06.014Z [DEBUG] [STARTUP] Loading commands and agents...
+2026-02-02T12:32:06.014Z [DEBUG] Total plugin agents loaded: 0
+2026-02-02T12:32:06.014Z [DEBUG] [STARTUP] Commands and agents loaded in 0ms
+2026-02-02T12:32:06.014Z [DEBUG] [LSP MANAGER] initializeLspServerManager() called
+2026-02-02T12:32:06.014Z [DEBUG] [LSP MANAGER] Created manager instance, state=pending
+2026-02-02T12:32:06.014Z [DEBUG] [LSP MANAGER] Starting async initialization (generation 1)
+2026-02-02T12:32:06.014Z [DEBUG] [API:request] Creating client, ANTHROPIC_CUSTOM_HEADERS present: false, has Authorization header: false
+2026-02-02T12:32:06.014Z [DEBUG] [API:auth] OAuth token check starting
+2026-02-02T12:32:06.016Z [DEBUG] Total LSP servers loaded: 0
+2026-02-02T12:32:06.016Z [DEBUG] [STARTUP] MCP configs loaded in 25ms
+2026-02-02T12:32:06.018Z [DEBUG] MCP server "chrome-devtools": Starting connection with timeout of 30000ms
+2026-02-02T12:32:06.019Z [DEBUG] [LSP SERVER MANAGER] getAllLspServers returned 0 server(s)
+2026-02-02T12:32:06.019Z [DEBUG] LSP manager initialized with 0 servers
+2026-02-02T12:32:06.019Z [DEBUG] LSP server manager initialized successfully
+2026-02-02T12:32:06.019Z [DEBUG] LSP notification handlers registered successfully for all 0 server(s)
+2026-02-02T12:32:06.019Z [DEBUG] [API:auth] OAuth token check complete
+2026-02-02T12:32:06.020Z [DEBUG] Watching for changes in skill/command directories: /Users/mitsuharunakamura/.claude/skills, /Users/mitsuharunakamura/Documents/Projects/Twilio_Demos/UA-Webphone-demo/.claude/skills...

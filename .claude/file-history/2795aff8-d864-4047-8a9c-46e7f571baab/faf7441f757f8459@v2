@@ -1,0 +1,183 @@
+import Foundation
+import CallKit
+import AVFoundation
+
+class CallKitService: NSObject {
+    static let shared = CallKitService()
+
+    private let callController = CXCallController()
+    private let provider: CXProvider
+
+    private override init() {
+        let configuration = CXProviderConfiguration()
+        configuration.supportsVideo = false
+        configuration.maximumCallGroups = 1
+        configuration.maximumCallsPerCallGroup = 1
+        configuration.supportedHandleTypes = [.phoneNumber, .generic]
+        configuration.iconTemplateImageData = nil // Set your app icon
+
+        provider = CXProvider(configuration: configuration)
+
+        super.init()
+
+        provider.setDelegate(self, queue: nil)
+    }
+
+    func configure() {
+        // Configuration is done in init
+        print("CallKit configured")
+    }
+
+    // MARK: - Incoming Call
+
+    func reportIncomingCall(from caller: String, uuid: UUID) {
+        let update = CXCallUpdate()
+        update.remoteHandle = CXHandle(type: .phoneNumber, value: caller)
+        update.hasVideo = false
+        update.localizedCallerName = caller
+        update.supportsHolding = true
+        update.supportsGrouping = false
+        update.supportsUngrouping = false
+        update.supportsDTMF = true
+
+        provider.reportNewIncomingCall(with: uuid, update: update) { error in
+            if let error = error {
+                print("Failed to report incoming call: \(error.localizedDescription)")
+            } else {
+                print("Incoming call reported successfully")
+            }
+        }
+    }
+
+    // MARK: - Outgoing Call
+
+    func startOutgoingCall(to phoneNumber: String, uuid: UUID) {
+        let handle = CXHandle(type: .phoneNumber, value: phoneNumber)
+        let startCallAction = CXStartCallAction(call: uuid, handle: handle)
+        startCallAction.isVideo = false
+
+        let transaction = CXTransaction(action: startCallAction)
+
+        callController.request(transaction) { error in
+            if let error = error {
+                print("Failed to start outgoing call: \(error.localizedDescription)")
+            } else {
+                print("Outgoing call started successfully")
+            }
+        }
+    }
+
+    // MARK: - Call Management
+
+    func endCall(uuid: UUID) {
+        let endCallAction = CXEndCallAction(call: uuid)
+        let transaction = CXTransaction(action: endCallAction)
+
+        callController.request(transaction) { error in
+            if let error = error {
+                print("Failed to end call: \(error.localizedDescription)")
+            } else {
+                print("Call ended successfully")
+            }
+        }
+    }
+
+    func setCallConnected(uuid: UUID) {
+        provider.reportOutgoingCall(with: uuid, connectedAt: Date())
+    }
+
+    func setHeld(uuid: UUID, onHold: Bool) {
+        let action = CXSetHeldCallAction(call: uuid, onHold: onHold)
+        let transaction = CXTransaction(action: action)
+
+        callController.request(transaction) { error in
+            if let error = error {
+                print("Failed to set hold state: \(error.localizedDescription)")
+            }
+        }
+    }
+
+    func setMuted(uuid: UUID, muted: Bool) {
+        let action = CXSetMutedCallAction(call: uuid, muted: muted)
+        let transaction = CXTransaction(action: action)
+
+        callController.request(transaction) { error in
+            if let error = error {
+                print("Failed to set mute state: \(error.localizedDescription)")
+            }
+        }
+    }
+}
+
+// MARK: - CXProviderDelegate
+
+extension CallKitService: CXProviderDelegate {
+    func providerDidReset(_ provider: CXProvider) {
+        print("Provider did reset")
+        // End all calls
+        TwilioService.shared.endCall()
+    }
+
+    func provider(_ provider: CXProvider, perform action: CXStartCallAction) {
+        // Configure audio session
+        let audioSession = AVAudioSession.sharedInstance()
+        do {
+            try audioSession.setCategory(.playAndRecord, mode: .voiceChat)
+            try audioSession.setActive(true)
+        } catch {
+            print("Failed to configure audio session: \(error.localizedDescription)")
+            action.fail()
+            return
+        }
+
+        // Notify CallManager
+        CallManager.shared.currentCallUUID = action.callUUID
+
+        // Report call as connected (actual connection happens in TwilioService)
+        action.fulfill()
+    }
+
+    func provider(_ provider: CXProvider, perform action: CXAnswerCallAction) {
+        // Configure audio session
+        let audioSession = AVAudioSession.sharedInstance()
+        do {
+            try audioSession.setCategory(.playAndRecord, mode: .voiceChat)
+            try audioSession.setActive(true)
+        } catch {
+            print("Failed to configure audio session: \(error.localizedDescription)")
+            action.fail()
+            return
+        }
+
+        // Answer the call via Twilio
+        CallManager.shared.answerCall(uuid: action.callUUID)
+        action.fulfill()
+    }
+
+    func provider(_ provider: CXProvider, perform action: CXEndCallAction) {
+        // End the call
+        TwilioService.shared.endCall()
+        CallManager.shared.endCall()
+        action.fulfill()
+    }
+
+    func provider(_ provider: CXProvider, perform action: CXSetHeldCallAction) {
+        TwilioService.shared.toggleHold()
+        action.fulfill()
+    }
+
+    func provider(_ provider: CXProvider, perform action: CXSetMutedCallAction) {
+        TwilioService.shared.toggleMute()
+        action.fulfill()
+    }
+
+    func provider(_ provider: CXProvider, didActivate audioSession: AVAudioSession) {
+        print("Audio session activated")
+        // Start audio processing
+    }
+
+    func provider(_ provider: CXProvider, didDeactivate audioSession: AVAudioSession) {
+        print("Audio session deactivated")
+        // Stop audio processing
+    }
+}

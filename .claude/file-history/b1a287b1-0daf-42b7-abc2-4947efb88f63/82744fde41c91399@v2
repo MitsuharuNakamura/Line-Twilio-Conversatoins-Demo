@@ -1,0 +1,128 @@
+//
+//  CardStackView.swift
+//  NewsSwipe
+//
+//  Created by Claude on 2026-01-24.
+//
+
+import SwiftUI
+
+struct CardStackView: View {
+    let articles: [Article]
+    let onSwipe: (Article, SwipeAction) -> Void
+    let onCardTap: (Article) -> Void
+
+    @State private var currentIndex: Int = 0
+    @State private var dragOffset: CGSize = .zero
+    @State private var rotation: Double = 0
+
+    private let swipeThreshold: CGFloat = 100
+    private let maxRotation: Double = 15
+
+    var body: some View {
+        ZStack {
+            if articles.isEmpty {
+                VStack(spacing: 16) {
+                    Image(systemName: "newspaper")
+                        .font(.system(size: 60))
+                        .foregroundColor(.gray)
+                    Text("記事がありません")
+                        .font(.headline)
+                        .foregroundColor(.secondary)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                ForEach(Array(articles.enumerated().reversed()), id: \.element.id) { index, article in
+                    if index >= currentIndex && index < currentIndex + 3 {
+                        CardView(article: article) {
+                            onCardTap(article)
+                        }
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .padding(.horizontal, 20)
+                        .offset(
+                            x: index == currentIndex ? dragOffset.width : 0,
+                            y: CGFloat(index - currentIndex) * 10
+                        )
+                        .scaleEffect(index == currentIndex ? 1.0 : 1.0 - CGFloat(index - currentIndex) * 0.05)
+                        .rotationEffect(.degrees(index == currentIndex ? rotation : 0))
+                        .opacity(index - currentIndex < 2 ? 1.0 : 0.5)
+                        .zIndex(Double(articles.count - index))
+                        .gesture(
+                            index == currentIndex ? dragGesture : nil
+                        )
+                        .overlay(
+                            // スワイプ方向インジケーター
+                            Group {
+                                if index == currentIndex && abs(dragOffset.width) > 50 {
+                                    ZStack {
+                                        RoundedRectangle(cornerRadius: 16)
+                                            .fill(dragOffset.width > 0 ? Color.green.opacity(0.3) : Color.red.opacity(0.3))
+
+                                        VStack {
+                                            Image(systemName: dragOffset.width > 0 ? "checkmark.circle.fill" : "xmark.circle.fill")
+                                                .font(.system(size: 50))
+                                                .foregroundColor(dragOffset.width > 0 ? .green : .red)
+                                            Text(dragOffset.width > 0 ? "既読" : "スキップ")
+                                                .font(.headline)
+                                                .foregroundColor(dragOffset.width > 0 ? .green : .red)
+                                        }
+                                    }
+                                }
+                            }
+                        )
+                        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: dragOffset)
+                    }
+                }
+            }
+        }
+    }
+
+    private var dragGesture: some Gesture {
+        DragGesture()
+            .onChanged { value in
+                dragOffset = value.translation
+                rotation = Double(value.translation.width / 20)
+            }
+            .onEnded { value in
+                let swipeDistance = value.translation.width
+
+                if abs(swipeDistance) > swipeThreshold {
+                    // スワイプ成功
+                    let action: SwipeAction = swipeDistance > 0 ? .read : .skipped
+                    let article = articles[currentIndex]
+
+                    withAnimation(.easeOut(duration: 0.3)) {
+                        dragOffset = CGSize(
+                            width: swipeDistance > 0 ? 500 : -500,
+                            height: value.translation.height
+                        )
+                    }
+
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                        onSwipe(article, action)
+                        currentIndex += 1
+                        dragOffset = .zero
+                        rotation = 0
+                    }
+                } else {
+                    // スワイプ失敗、元に戻す
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                        dragOffset = .zero
+                        rotation = 0
+                    }
+                }
+            }
+    }
+}
+
+#Preview {
+    CardStackView(
+        articles: Article.mockArray(count: 5),
+        onSwipe: { article, action in
+            print("Swiped \(article.title) - \(action)")
+        },
+        onCardTap: { article in
+            print("Tapped \(article.title)")
+        }
+    )
+}

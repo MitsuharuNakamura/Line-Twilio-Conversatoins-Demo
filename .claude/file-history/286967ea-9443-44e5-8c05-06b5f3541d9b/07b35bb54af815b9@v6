@@ -1,0 +1,192 @@
+import SwiftUI
+
+struct ContentView: View {
+    @StateObject private var translationViewModel = TranslationViewModel()
+    @Environment(\.horizontalSizeClass) var horizontalSizeClass
+    @Environment(\.verticalSizeClass) var verticalSizeClass
+
+    // デバイスの向きを判定
+    var isLandscape: Bool {
+        horizontalSizeClass == .regular || verticalSizeClass == .compact
+    }
+
+    var body: some View {
+        GeometryReader { geometry in
+            VStack(spacing: 0) {
+                // Header - 最小限に
+                Text("リアルタイム音声翻訳")
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                    .padding(.vertical, 6)
+                    .padding(.horizontal)
+                    .frame(maxWidth: .infinity)
+                    .background(Color(.systemBackground))
+
+                // Translation Display Area - 画面の大部分を使用
+                if isLandscape {
+                    // 横向き: 横並びレイアウト - 5行分の高さ
+                    let buttonHeight: CGFloat = 70
+                    let headerHeight: CGFloat = 30
+                    let availableHeight = geometry.size.height - buttonHeight - headerHeight
+
+                    HStack(spacing: 6) {
+                        TranslationTextView(
+                            title: "English",
+                            text: translationViewModel.recognizedText.isEmpty ? "音声を認識中..." : translationViewModel.recognizedText,
+                            color: .blue,
+                            height: max(150, availableHeight)
+                        )
+
+                        TranslationTextView(
+                            title: "日本語",
+                            text: translationViewModel.translatedText.isEmpty ? "翻訳を待機中..." : translationViewModel.translatedText,
+                            color: .green,
+                            height: max(150, availableHeight)
+                        )
+                    }
+                    .padding(.horizontal, 6)
+                    .padding(.bottom, 4)
+                } else {
+                    // 縦向き: 縦並びレイアウト - 8行分の高さ
+                    let buttonHeight: CGFloat = 70
+                    let headerHeight: CGFloat = 30
+                    let historyHeight: CGFloat = translationViewModel.history.isEmpty ? 0 : 80
+                    let availableHeight = geometry.size.height - buttonHeight - headerHeight - historyHeight
+                    let textViewHeight = max(200, availableHeight / 2)
+
+                    VStack(spacing: 6) {
+                        TranslationTextView(
+                            title: "English",
+                            text: translationViewModel.recognizedText.isEmpty ? "音声を認識中..." : translationViewModel.recognizedText,
+                            color: .blue,
+                            height: textViewHeight
+                        )
+
+                        TranslationTextView(
+                            title: "日本語",
+                            text: translationViewModel.translatedText.isEmpty ? "翻訳を待機中..." : translationViewModel.translatedText,
+                            color: .green,
+                            height: textViewHeight
+                        )
+
+                        // Translation History - さらにコンパクトに
+                        if !translationViewModel.history.isEmpty {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("履歴")
+                                    .font(.caption2)
+                                    .fontWeight(.semibold)
+                                    .padding(.horizontal, 10)
+                                    .padding(.top, 4)
+
+                                ScrollView {
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        ForEach(translationViewModel.history) { item in
+                                            VStack(alignment: .leading, spacing: 1) {
+                                                Text(item.originalText)
+                                                    .font(.system(size: 10))
+                                                    .foregroundColor(.secondary)
+                                                Text(item.translatedText)
+                                                    .font(.caption2)
+                                                Divider()
+                                            }
+                                            .padding(.vertical, 1)
+                                        }
+                                    }
+                                    .padding(.horizontal, 10)
+                                }
+                            }
+                            .frame(height: historyHeight)
+                            .background(Color(.systemGray6))
+                            .cornerRadius(8)
+                            .padding(.horizontal, 6)
+                        }
+                    }
+                    .padding(.horizontal, 6)
+                    .padding(.bottom, 4)
+                }
+
+                // Control Buttons - さらにコンパクトに
+                HStack(spacing: 20) {
+                    Button(action: {
+                        if translationViewModel.isRecording {
+                            translationViewModel.stopRecording()
+                        } else {
+                            translationViewModel.startRecording()
+                        }
+                    }) {
+                        Image(systemName: translationViewModel.isRecording ? "stop.circle.fill" : "mic.circle.fill")
+                            .font(.system(size: 45))
+                            .foregroundColor(translationViewModel.isRecording ? .red : .blue)
+                    }
+
+                    Button(action: {
+                        translationViewModel.clearHistory()
+                    }) {
+                        Image(systemName: "trash.circle.fill")
+                            .font(.system(size: 30))
+                            .foregroundColor(.gray)
+                    }
+                }
+                .padding(.vertical, 6)
+                .frame(maxWidth: .infinity)
+                .background(Color(.systemBackground))
+            }
+        }
+        .ignoresSafeArea(.keyboard)
+        .alert("エラー", isPresented: $translationViewModel.showError) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(translationViewModel.errorMessage)
+        }
+    }
+}
+
+// オートスクロール対応のテキスト表示コンポーネント
+struct TranslationTextView: View {
+    let title: String
+    let text: String
+    let color: Color
+    let height: CGFloat
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(title)
+                .font(.caption)
+                .fontWeight(.semibold)
+                .foregroundColor(color)
+                .padding(.horizontal, 10)
+                .padding(.top, 6)
+
+            ScrollViewReader { proxy in
+                ScrollView {
+                    VStack(alignment: .leading) {
+                        Text(text)
+                            .font(.body)
+                            .padding(10)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .id("bottom")
+                    }
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(color.opacity(0.1))
+                .cornerRadius(8)
+                .onChange(of: text) { oldValue, newValue in
+                    // テキストが更新されたら最下部にスクロール
+                    withAnimation(.easeOut(duration: 0.3)) {
+                        proxy.scrollTo("bottom", anchor: .bottom)
+                    }
+                }
+            }
+            .padding(.horizontal, 6)
+            .padding(.bottom, 6)
+        }
+        .frame(maxWidth: .infinity, maxHeight: height)
+        .background(Color(.systemBackground))
+        .cornerRadius(10)
+        .shadow(color: color.opacity(0.15), radius: 3, x: 0, y: 1)
+    }
+}
+
+#Preview {
+    ContentView()
+}

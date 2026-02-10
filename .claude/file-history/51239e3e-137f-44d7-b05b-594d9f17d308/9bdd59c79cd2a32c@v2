@@ -1,0 +1,18 @@
+import Foundation
+
+struct Video: Identifiable, Hashable {
+    let id = UUID()
+    let filename: String
+    let title: String
+    let thumbnailName: String?
+
+    var displayTitle: String {
+        title.isEmpty ? filename : title
+    }
+
+    init(filename: String, title: String = "", thumbnailName: String? = nil) {
+        self.filename = filename
+        self.title = title
+        self.thumbnailName = thumbnailName
+    }
+}

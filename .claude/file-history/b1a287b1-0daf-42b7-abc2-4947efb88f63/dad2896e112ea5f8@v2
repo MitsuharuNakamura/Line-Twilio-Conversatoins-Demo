@@ -1,0 +1,151 @@
+# NewsSwipe
+
+Tinder風のスワイプ操作でニュース記事をトリアージできるiOSアプリです。
+
+## 概要
+
+NewsSwipeは、直感的なスワイプジェスチャーでニュース記事を効率的に閲覧・管理できるiOSアプリケーションです。
+
+### 主な機能
+
+- **スワイプ操作**
+  - 右スワイプ: 記事を既読として保存
+  - 左スワイプ: 興味なし（スキップ）
+  - タップ: 記事詳細を表示
+
+- **カテゴリ選択**
+  - テクノロジー
+  - ビジネス
+  - スポーツ
+  - エンタメ
+  - 科学
+  - 健康
+
+- **ニュースソース**
+  - Google News RSS
+  - NewsAPI（オプション）
+
+- **データ管理**
+  - SwiftDataによる既読履歴の永続化
+  - 1週間で自動的に古い履歴を削除
+
+## 技術スタック
+
+- **言語**: Swift
+- **UI**: SwiftUI
+- **最小対応**: iOS 17+
+- **アーキテクチャ**: MVVM
+- **パッケージ管理**: Swift Package Manager
+- **データ永続化**: SwiftData
+- **依存パッケージ**: FeedKit (RSSパース)
+
+## セットアップ
+
+### 必須要件
+
+- Xcode 15.0以上
+- iOS 17.0以上
+- macOS 14.0以上（開発用）
+
+### インストール手順
+
+1. リポジトリをクローン
+```bash
+git clone <repository-url>
+cd NewsSwipe
+```
+
+2. Xcodeでプロジェクトを開く
+```bash
+open NewsSwipe.xcodeproj
+```
+
+3. Swift Package Managerが自動的に依存関係をダウンロード
+
+4. （オプション）NewsAPIキーの設定
+   - https://newsapi.org/ でAPIキーを取得
+   - Xcodeのスキーム設定で環境変数 `NEWS_API_KEY` を設定
+
+### 環境変数の設定（オプション）
+
+NewsAPIを使用する場合:
+
+1. Xcode > Product > Scheme > Edit Scheme
+2. Run > Arguments タブを選択
+3. Environment Variables に追加:
+   - Name: `NEWS_API_KEY`
+   - Value: `あなたのAPIキー`
+
+## プロジェクト構成
+
+```
+NewsSwipe/
+├── App/
+│   └── NewsSwipeApp.swift          # アプリエントリーポイント
+├── Models/
+│   ├── Article.swift               # 記事データモデル
+│   ├── Category.swift              # カテゴリEnum
+│   └── ReadHistory.swift           # 既読履歴モデル（SwiftData）
+├── ViewModels/
+│   ├── NewsViewModel.swift         # ニュース管理ViewModel
+│   └── HistoryViewModel.swift      # 履歴管理ViewModel
+├── Views/
+│   ├── MainView.swift              # メイン画面
+│   ├── CardView.swift              # 記事カード
+│   ├── CardStackView.swift         # カードスタック（スワイプ実装）
+│   └── ArticleDetailView.swift     # 記事詳細（WebView）
+├── Services/
+│   ├── NewsAPIService.swift        # NewsAPI連携
+│   ├── RSSService.swift            # RSS取得
+│   └── NewsService.swift           # 統合ニュースサービス
+└── Info.plist
+```
+
+## 使い方
+
+1. アプリを起動すると、デフォルトで「テクノロジー」カテゴリのニュースが表示されます
+
+2. カテゴリを変更するには、上部のプルダウンメニューから選択
+
+3. カードを操作:
+   - **右にスワイプ**: 記事を既読として保存
+   - **左にスワイプ**: 記事をスキップ
+   - **タップ**: 記事の詳細をWebViewで表示
+
+4. 記事詳細画面:
+   - 左上の「戻る」ボタンで戻る
+   - 右上の共有ボタンで記事を共有
+
+## 開発
+
+### モックデータでの開発
+
+NewsAPIキーがない場合でも、モックデータで動作確認できます。
+`Article.swift` の `mockArray()` メソッドがモックデータを生成します。
+
+### カスタマイズ
+
+- カテゴリを追加: `Category.swift` を編集
+- UI調整: 各Viewファイルを編集
+- ニュースソースの追加: `NewsService.swift` にサービスを追加
+
+## トラブルシューティング
+
+### 記事が表示されない
+
+- ネットワーク接続を確認
+- NewsAPIキーが正しく設定されているか確認
+- モックデータは常に表示されるはずです
+
+### ビルドエラー
+
+- Xcode 15以上を使用しているか確認
+- Swift Package Managerの依存関係を再取得: Product > Clean Build Folder
+
+## ライセンス
+
+MIT License
+
+## 依存パッケージ
+
+- [FeedKit](https://github.com/nmdias/FeedKit) - MIT License

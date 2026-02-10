@@ -1,0 +1,45 @@
+//
+//  NewsSwipeApp.swift
+//  NewsSwipe
+//
+//  Created by Claude on 2026-01-24.
+//
+
+import SwiftUI
+import SwiftData
+
+@main
+struct NewsSwipeApp: App {
+    let modelContainer: ModelContainer
+    let historyViewModel: HistoryViewModel
+    let newsViewModel: NewsViewModel
+
+    init() {
+        do {
+            // SwiftDataのモデルコンテナを初期化
+            modelContainer = try ModelContainer(for: ReadHistory.self)
+
+            // ViewModelを初期化
+            let context = modelContainer.mainContext
+            historyViewModel = HistoryViewModel(modelContext: context)
+
+            // NewsAPIキーを環境変数から取得（オプション）
+            let newsAPIKey = ProcessInfo.processInfo.environment["NEWS_API_KEY"]
+            newsViewModel = NewsViewModel(historyViewModel: historyViewModel, newsAPIKey: newsAPIKey)
+
+        } catch {
+            fatalError("Failed to initialize ModelContainer: \(error)")
+        }
+    }
+
+    var body: some Scene {
+        WindowGroup {
+            MainView(newsViewModel: newsViewModel)
+                .modelContainer(modelContainer)
+                .task {
+                    // アプリ起動時に古い履歴をクリーンアップ
+                    historyViewModel.cleanupOldHistory()
+                }
+        }
+    }
+}

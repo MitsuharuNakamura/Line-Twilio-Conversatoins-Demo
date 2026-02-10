@@ -1,0 +1,20 @@
+[
+  {
+    "content": "Fix WebSocket upgrade conflict by using noServer option",
+    "status": "completed",
+    "priority": "high",
+    "id": "1"
+  },
+  {
+    "content": "Update WebSocketService to handle specific path",
+    "status": "completed",
+    "priority": "high",
+    "id": "2"
+  },
+  {
+    "content": "Test both WebSocket endpoints work correctly",
+    "status": "pending",
+    "priority": "medium",
+    "id": "3"
+  }
+]

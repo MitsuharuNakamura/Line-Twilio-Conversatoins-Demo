@@ -1,0 +1,12 @@
+[
+  {
+    "content": "README.mdを作成",
+    "status": "completed",
+    "id": "1"
+  },
+  {
+    "content": ".gitignoreを作成",
+    "status": "completed",
+    "id": "2"
+  }
+]

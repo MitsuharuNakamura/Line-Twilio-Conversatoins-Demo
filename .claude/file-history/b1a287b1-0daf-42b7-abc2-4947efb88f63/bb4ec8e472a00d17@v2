@@ -1,0 +1,74 @@
+//
+//  Article.swift
+//  NewsSwipe
+//
+//  Created by Claude on 2026-01-24.
+//
+
+import Foundation
+
+struct Article: Identifiable, Codable, Equatable {
+    let id: UUID
+    let title: String
+    let summary: String
+    let imageURL: String?
+    let articleURL: String
+    let sourceName: String
+    let publishedDate: Date
+    let category: Category
+
+    init(
+        id: UUID = UUID(),
+        title: String,
+        summary: String,
+        imageURL: String? = nil,
+        articleURL: String,
+        sourceName: String,
+        publishedDate: Date,
+        category: Category
+    ) {
+        self.id = id
+        self.title = title
+        self.summary = summary
+        self.imageURL = imageURL
+        self.articleURL = articleURL
+        self.sourceName = sourceName
+        self.publishedDate = publishedDate
+        self.category = category
+    }
+
+    // モックデータ生成用
+    static func mock(category: Category = .technology) -> Article {
+        Article(
+            title: "Apple、新しいiPhoneを発表",
+            summary: "Appleは本日、革新的な機能を搭載した新型iPhoneを発表しました。業界関係者からは高い評価を得ています。",
+            imageURL: "https://cdn.pixabay.com/photo/2016/11/29/08/41/apple-1868496_1280.jpg",
+            articleURL: "https://example.com/article",
+            sourceName: "Tech News",
+            publishedDate: Date(),
+            category: category
+        )
+    }
+
+    static func mockArray(count: Int = 10, category: Category = .technology) -> [Article] {
+        let sampleImages = [
+            "https://cdn.pixabay.com/photo/2016/11/29/08/41/apple-1868496_1280.jpg",
+            "https://cdn.pixabay.com/photo/2015/02/02/11/09/office-620822_1280.jpg",
+            "https://cdn.pixabay.com/photo/2016/11/19/14/00/code-1839406_1280.jpg",
+            "https://cdn.pixabay.com/photo/2017/08/10/08/47/laptop-2620118_1280.jpg",
+            "https://cdn.pixabay.com/photo/2015/01/08/18/29/entrepreneur-593358_1280.jpg"
+        ]
+
+        return (0..<count).map { index in
+            Article(
+                title: "サンプルニュース記事 \(index + 1)",
+                summary: "これはサンプルの記事です。実際のニュース記事の要約がここに表示されます。約2〜3行程度の長さになります。",
+                imageURL: sampleImages[index % sampleImages.count],
+                articleURL: "https://example.com/article/\(index)",
+                sourceName: "Sample News \(index % 3 + 1)",
+                publishedDate: Date().addingTimeInterval(-Double(index) * 3600),
+                category: category
+            )
+        }
+    }
+}

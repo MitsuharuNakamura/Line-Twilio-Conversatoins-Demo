@@ -1,0 +1,20 @@
+[
+  {
+    "content": "Gemini API実装の調査",
+    "status": "completed",
+    "priority": "high",
+    "id": "1"
+  },
+  {
+    "content": "メッセージ送信処理の確認",
+    "status": "completed",
+    "priority": "high",
+    "id": "2"
+  },
+  {
+    "content": "エラーハンドリングの確認",
+    "status": "completed",
+    "priority": "medium",
+    "id": "3"
+  }
+]

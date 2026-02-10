@@ -1,0 +1,66 @@
+//
+//  Article.swift
+//  NewsSwipe
+//
+//  Created by Claude on 2026-01-24.
+//
+
+import Foundation
+
+struct Article: Identifiable, Codable, Equatable {
+    let id: UUID
+    let title: String
+    let summary: String
+    let imageURL: String?
+    let articleURL: String
+    let sourceName: String
+    let publishedDate: Date
+    let category: Category
+
+    init(
+        id: UUID = UUID(),
+        title: String,
+        summary: String,
+        imageURL: String? = nil,
+        articleURL: String,
+        sourceName: String,
+        publishedDate: Date,
+        category: Category
+    ) {
+        self.id = id
+        self.title = title
+        self.summary = summary
+        self.imageURL = imageURL
+        self.articleURL = articleURL
+        self.sourceName = sourceName
+        self.publishedDate = publishedDate
+        self.category = category
+    }
+
+    // モックデータ生成用
+    static func mock(category: Category = .technology) -> Article {
+        Article(
+            title: "Apple、新しいiPhoneを発表",
+            summary: "Appleは本日、革新的な機能を搭載した新型iPhoneを発表しました。業界関係者からは高い評価を得ています。",
+            imageURL: "https://picsum.photos/400/300",
+            articleURL: "https://example.com/article",
+            sourceName: "Tech News",
+            publishedDate: Date(),
+            category: category
+        )
+    }
+
+    static func mockArray(count: Int = 10, category: Category = .technology) -> [Article] {
+        (0..<count).map { index in
+            Article(
+                title: "サンプルニュース記事 \(index + 1)",
+                summary: "これはサンプルの記事です。実際のニュース記事の要約がここに表示されます。約2〜3行程度の長さになります。",
+                imageURL: "https://picsum.photos/400/300?random=\(index)",
+                articleURL: "https://example.com/article/\(index)",
+                sourceName: "Sample News \(index % 3 + 1)",
+                publishedDate: Date().addingTimeInterval(-Double(index) * 3600),
+                category: category
+            )
+        }
+    }
+}

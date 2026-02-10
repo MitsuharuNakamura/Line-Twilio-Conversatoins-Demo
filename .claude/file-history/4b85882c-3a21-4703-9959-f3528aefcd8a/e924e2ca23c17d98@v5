@@ -1,0 +1,89 @@
+import OpenAI from 'openai';
+
+let openaiClient = null;
+
+export const initializeOpenAI = (apiKey) => {
+  openaiClient = new OpenAI({
+    apiKey: apiKey,
+    dangerouslyAllowBrowser: true, // React Nativeでは必要
+    // グローバルなfetchポリフィルを使用
+  });
+};
+
+// ストリーミング翻訳（最速）
+export const translateTextStreaming = async (text, onChunk) => {
+  if (!openaiClient) {
+    throw new Error('OpenAI client not initialized');
+  }
+
+  try {
+    const stream = await openaiClient.chat.completions.create({
+      model: 'gpt-4o-mini', // より安定したモデルに変更
+      messages: [
+        {
+          role: 'system',
+          content: 'You are a professional translator. Translate the following English text to Japanese. Provide ONLY the translation without any explanations.',
+        },
+        {
+          role: 'user',
+          content: text,
+        },
+      ],
+      stream: true,
+      max_tokens: 500,
+      temperature: 0.3, // 低めに設定して翻訳の一貫性を保つ
+    });
+
+    let fullTranslation = '';
+
+    for await (const chunk of stream) {
+      const content = chunk.choices[0]?.delta?.content || '';
+      if (content) {
+        fullTranslation += content;
+        // リアルタイムで部分翻訳を返す
+        onChunk(fullTranslation);
+      }
+    }
+
+    return fullTranslation;
+  } catch (error) {
+    console.error('Translation error:', error);
+    console.error('Error details:', {
+      message: error.message,
+      status: error.status,
+      type: error.type,
+      cause: error.cause
+    });
+    throw error;
+  }
+};
+
+// 通常の翻訳（非ストリーミング、フォールバック用）
+export const translateText = async (text) => {
+  if (!openaiClient) {
+    throw new Error('OpenAI client not initialized');
+  }
+
+  try {
+    const response = await openaiClient.chat.completions.create({
+      model: 'gpt-4o-mini', // より安定したモデルに変更
+      messages: [
+        {
+          role: 'system',
+          content: 'You are a professional translator. Translate the following English text to Japanese. Provide ONLY the translation without any explanations.',
+        },
+        {
+          role: 'user',
+          content: text,
+        },
+      ],
+      max_tokens: 500,
+      temperature: 0.3,
+    });
+
+    return response.choices[0].message.content;
+  } catch (error) {
+    console.error('Translation error:', error);
+    throw error;
+  }
+};

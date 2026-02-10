@@ -1,0 +1,293 @@
+import React, { useState, useEffect } from 'react';
+import {
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  ScrollView,
+  SafeAreaView,
+  ActivityIndicator,
+  Alert,
+} from 'react-native';
+import { StatusBar } from 'expo-status-bar';
+import { useSpeechRecognition } from './src/hooks/useSpeechRecognition';
+import { initializeOpenAI, translateTextStreaming } from './src/services/translationService';
+import { OPENAI_API_KEY } from '@env';
+
+export default function App() {
+  const [translatedText, setTranslatedText] = useState('');
+  const [isTranslating, setIsTranslating] = useState(false);
+  const [translationHistory, setTranslationHistory] = useState([]);
+
+  const {
+    isListening,
+    recognizedText,
+    partialText,
+    error,
+    startListening,
+    stopListening,
+  } = useSpeechRecognition();
+
+  // OpenAI初期化とネットワークテスト
+  useEffect(() => {
+    console.log('API Key check:', OPENAI_API_KEY ? 'Found' : 'Not found');
+
+    // ネットワーク接続テスト
+    const testNetwork = async () => {
+      try {
+        console.log('Testing network connection...');
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', 'https://www.google.com');
+        xhr.onload = () => {
+          console.log('Network test success - Google reachable');
+        };
+        xhr.onerror = (e) => {
+          console.log('Network test failed - Cannot reach Google', e);
+        };
+        xhr.send();
+      } catch (error) {
+        console.log('Network test error:', error);
+      }
+    };
+
+    testNetwork();
+
+    if (OPENAI_API_KEY) {
+      initializeOpenAI(OPENAI_API_KEY);
+      console.log('OpenAI initialized');
+    } else {
+      Alert.alert('エラー', '.envファイルにOPENAI_API_KEYを設定してください');
+    }
+  }, []);
+
+  // 音声認識結果が更新されたら自動翻訳
+  useEffect(() => {
+    if (recognizedText && recognizedText.trim().length > 0) {
+      handleTranslate(recognizedText);
+    }
+  }, [recognizedText]);
+
+  const handleTranslate = async (text) => {
+    setIsTranslating(true);
+    setTranslatedText('');
+
+    try {
+      await translateTextStreaming(text, (partialTranslation) => {
+        // ストリーミングで翻訳結果を逐次表示
+        setTranslatedText(partialTranslation);
+      });
+
+      // 翻訳完了後、履歴に追加
+      setTranslationHistory((prev) => [
+        { english: text, japanese: translatedText },
+        ...prev.slice(0, 9), // 最新10件まで保持
+      ]);
+    } catch (err) {
+      Alert.alert('翻訳エラー', err.message);
+    } finally {
+      setIsTranslating(false);
+    }
+  };
+
+  const handleMicPress = () => {
+    if (isListening) {
+      stopListening();
+    } else {
+      startListening();
+    }
+  };
+
+  const displayText = partialText || recognizedText || '音声を認識中...';
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <StatusBar style="dark" />
+
+      {/* ヘッダー */}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>リアルタイム翻訳</Text>
+        <Text style={styles.headerSubtitle}>English → 日本語</Text>
+      </View>
+
+      {/* メインコンテンツ */}
+      <View style={styles.mainContent}>
+        {/* 英語表示エリア */}
+        <View style={styles.textBox}>
+          <Text style={styles.label}>🇺🇸 English</Text>
+          <ScrollView style={styles.textScrollView}>
+            <Text style={[styles.text, partialText && styles.partialText]}>
+              {isListening ? displayText : recognizedText || '音声認識待機中...'}
+            </Text>
+          </ScrollView>
+        </View>
+
+        {/* 翻訳表示エリア */}
+        <View style={styles.textBox}>
+          <Text style={styles.label}>🇯🇵 日本語</Text>
+          <ScrollView style={styles.textScrollView}>
+            {isTranslating ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color="#007AFF" />
+                <Text style={styles.loadingText}>翻訳中...</Text>
+              </View>
+            ) : (
+              <Text style={styles.text}>{translatedText || '翻訳待機中...'}</Text>
+            )}
+          </ScrollView>
+        </View>
+      </View>
+
+      {/* コントロールボタン */}
+      <View style={styles.controls}>
+        <TouchableOpacity
+          style={[styles.micButton, isListening && styles.micButtonActive]}
+          onPress={handleMicPress}
+        >
+          <Text style={styles.micButtonText}>{isListening ? '⏸ 停止' : '🎤 開始'}</Text>
+        </TouchableOpacity>
+
+        {error && <Text style={styles.errorText}>エラー: {error}</Text>}
+      </View>
+
+      {/* 翻訳履歴 */}
+      {translationHistory.length > 0 && (
+        <View style={styles.historyContainer}>
+          <Text style={styles.historyTitle}>履歴</Text>
+          <ScrollView style={styles.historyScroll}>
+            {translationHistory.map((item, index) => (
+              <View key={index} style={styles.historyItem}>
+                <Text style={styles.historyEnglish}>{item.english}</Text>
+                <Text style={styles.historyJapanese}>→ {item.japanese}</Text>
+              </View>
+            ))}
+          </ScrollView>
+        </View>
+      )}
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f5f5f5',
+  },
+  header: {
+    backgroundColor: '#007AFF',
+    padding: 20,
+    alignItems: 'center',
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  headerSubtitle: {
+    fontSize: 14,
+    color: '#fff',
+    marginTop: 5,
+  },
+  mainContent: {
+    flex: 1,
+    padding: 16,
+  },
+  textBox: {
+    flex: 1,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 12,
+    color: '#333',
+  },
+  textScrollView: {
+    flex: 1,
+  },
+  text: {
+    fontSize: 18,
+    lineHeight: 26,
+    color: '#000',
+  },
+  partialText: {
+    color: '#666',
+    fontStyle: 'italic',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: '#666',
+  },
+  controls: {
+    padding: 16,
+    alignItems: 'center',
+  },
+  micButton: {
+    backgroundColor: '#007AFF',
+    paddingVertical: 16,
+    paddingHorizontal: 48,
+    borderRadius: 50,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  micButtonActive: {
+    backgroundColor: '#FF3B30',
+  },
+  micButtonText: {
+    color: '#fff',
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  errorText: {
+    marginTop: 10,
+    color: '#FF3B30',
+    fontSize: 14,
+  },
+  historyContainer: {
+    maxHeight: 150,
+    backgroundColor: '#fff',
+    borderTopWidth: 1,
+    borderTopColor: '#e0e0e0',
+    padding: 12,
+  },
+  historyTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 8,
+    color: '#666',
+  },
+  historyScroll: {
+    flex: 1,
+  },
+  historyItem: {
+    marginBottom: 8,
+    paddingBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  historyEnglish: {
+    fontSize: 12,
+    color: '#333',
+  },
+  historyJapanese: {
+    fontSize: 12,
+    color: '#007AFF',
+    marginTop: 2,
+  },
+});

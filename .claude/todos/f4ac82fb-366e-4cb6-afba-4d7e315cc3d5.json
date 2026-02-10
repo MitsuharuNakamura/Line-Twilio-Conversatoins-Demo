@@ -1,0 +1,20 @@
+[
+  {
+    "content": "Read and understand the current batch-test.js implementation",
+    "status": "completed",
+    "priority": "high",
+    "id": "1"
+  },
+  {
+    "content": "Modify the code to wait for the previous call to complete before making the next one",
+    "status": "completed",
+    "priority": "high",
+    "id": "2"
+  },
+  {
+    "content": "Test the sequential calling functionality",
+    "status": "completed",
+    "priority": "medium",
+    "id": "3"
+  }
+]

@@ -1,0 +1,32 @@
+[
+  {
+    "content": "Add ConversationRelayService import to index.js",
+    "status": "completed",
+    "priority": "high",
+    "id": "1"
+  },
+  {
+    "content": "Initialize ConversationRelayService in Server constructor",
+    "status": "completed",
+    "priority": "high",
+    "id": "2"
+  },
+  {
+    "content": "Integrate ConversationRelayService with WebSocketService for handling conversation relay connections",
+    "status": "completed",
+    "priority": "high",
+    "id": "3"
+  },
+  {
+    "content": "Add conversation relay event handlers to bridge with existing websocket clients",
+    "status": "completed",
+    "priority": "medium",
+    "id": "4"
+  },
+  {
+    "content": "Update graceful shutdown to close conversation relay connections",
+    "status": "completed",
+    "priority": "medium",
+    "id": "5"
+  }
+]

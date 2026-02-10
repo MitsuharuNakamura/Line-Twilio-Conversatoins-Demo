@@ -1,0 +1,32 @@
+[
+  {
+    "content": "Delete OpenAI-related files and services",
+    "status": "completed",
+    "priority": "high",
+    "id": "1"
+  },
+  {
+    "content": "Delete ConversationRelay-related files and services",
+    "status": "completed",
+    "priority": "high",
+    "id": "2"
+  },
+  {
+    "content": "Remove OpenAI and ConversationRelay imports and references from server/index.js",
+    "status": "completed",
+    "priority": "high",
+    "id": "3"
+  },
+  {
+    "content": "Remove OpenAI package from dependencies",
+    "status": "completed",
+    "priority": "medium",
+    "id": "4"
+  },
+  {
+    "content": "Clean up any remaining references",
+    "status": "completed",
+    "priority": "low",
+    "id": "5"
+  }
+]

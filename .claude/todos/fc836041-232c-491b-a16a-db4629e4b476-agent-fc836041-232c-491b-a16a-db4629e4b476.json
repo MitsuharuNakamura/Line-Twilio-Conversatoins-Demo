@@ -1,0 +1,32 @@
+[
+  {
+    "content": "プロジェクト構造を確認し、既存のAPI管理コードを調査",
+    "status": "completed",
+    "priority": "high",
+    "id": "1"
+  },
+  {
+    "content": "APIキー保存用のセキュアなストレージ機能を実装",
+    "status": "completed",
+    "priority": "high",
+    "id": "2"
+  },
+  {
+    "content": "APIキー管理用のUIコンポーネントを作成",
+    "status": "completed",
+    "priority": "medium",
+    "id": "3"
+  },
+  {
+    "content": "保存したAPIキーを各AIプロバイダーで使用する機能を実装",
+    "status": "completed",
+    "priority": "medium",
+    "id": "4"
+  },
+  {
+    "content": "APIキーの暗号化とセキュリティ対策を追加",
+    "status": "completed",
+    "priority": "high",
+    "id": "5"
+  }
+]

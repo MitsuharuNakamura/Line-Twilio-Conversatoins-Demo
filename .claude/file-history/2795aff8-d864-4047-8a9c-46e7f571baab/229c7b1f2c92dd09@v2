@@ -1,0 +1,66 @@
+import SwiftUI
+
+struct WebRTCCallView: View {
+    @State private var peerID: String = ""
+    @State private var showError: Bool = false
+    @State private var errorMessage: String = ""
+
+    var body: some View {
+        NavigationView {
+            VStack(spacing: 24) {
+                Spacer()
+
+                VStack(spacing: 16) {
+                    Image(systemName: "phone.connection")
+                        .font(.system(size: 80))
+                        .foregroundColor(.purple)
+
+                    Text("P2P通話")
+                        .font(.title)
+                        .fontWeight(.bold)
+
+                    Text("相手のIDを入力してください")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+
+                    TextField("Peer ID", text: $peerID)
+                        .textFieldStyle(.roundedBorder)
+                        .autocapitalization(.none)
+                        .padding(.horizontal, 32)
+                }
+
+                Spacer()
+
+                // Call Button
+                Button(action: makeCall) {
+                    HStack {
+                        Image(systemName: "phone.fill")
+                        Text("発信")
+                    }
+                    .font(.headline)
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(peerID.isEmpty ? Color.gray : Color.purple)
+                    .cornerRadius(12)
+                }
+                .disabled(peerID.isEmpty)
+                .padding(.horizontal, 32)
+                .padding(.bottom, 32)
+            }
+            .navigationTitle("P2P")
+            .alert("エラー", isPresented: $showError) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(errorMessage)
+            }
+        }
+    }
+
+    private func makeCall() {
+        // TODO: Implement WebRTC calling logic
+        print("Making WebRTC call to: \(peerID)")
+        errorMessage = "P2P通話機能は準備中です"
+        showError = true
+    }
+}

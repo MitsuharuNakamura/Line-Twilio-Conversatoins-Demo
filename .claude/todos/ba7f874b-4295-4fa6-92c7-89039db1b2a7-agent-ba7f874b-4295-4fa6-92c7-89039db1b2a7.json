@@ -1,0 +1,14 @@
+[
+  {
+    "content": "Replace hardcoded SERVER_URL with dynamic domain detection",
+    "status": "completed",
+    "priority": "high",
+    "id": "1"
+  },
+  {
+    "content": "Update TwiML response generation to use dynamic URL",
+    "status": "completed",
+    "priority": "medium",
+    "id": "2"
+  }
+]

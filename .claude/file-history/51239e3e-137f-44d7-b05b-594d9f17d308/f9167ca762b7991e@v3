@@ -1,0 +1,20 @@
+import SwiftUI
+
+struct ContentView: View {
+    @StateObject private var videoManager = VideoManager()
+
+    init() {
+        print("ContentView init called")
+    }
+
+    var body: some View {
+        let _ = print("ContentView.body: videos count = \(videoManager.videos.count)")
+        let _ = print("ContentView.body: videoManager = \(ObjectIdentifier(videoManager))")
+
+        return VideoListView(videoManager: videoManager)
+    }
+}
+
+#Preview {
+    ContentView()
+}

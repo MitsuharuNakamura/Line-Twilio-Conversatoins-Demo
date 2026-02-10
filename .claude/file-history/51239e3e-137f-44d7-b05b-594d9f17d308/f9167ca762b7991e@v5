@@ -1,0 +1,17 @@
+import SwiftUI
+
+struct ContentView: View {
+    var body: some View {
+        print("ContentView.body called!!!")
+        return ZStack {
+            Color.red.ignoresSafeArea()
+            Text("HELLO WORLD")
+                .font(.largeTitle)
+                .foregroundColor(.white)
+        }
+    }
+}
+
+#Preview {
+    ContentView()
+}

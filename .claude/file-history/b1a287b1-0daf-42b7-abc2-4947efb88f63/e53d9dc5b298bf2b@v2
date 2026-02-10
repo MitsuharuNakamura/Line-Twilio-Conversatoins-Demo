@@ -1,0 +1,27 @@
+// swift-tools-version: 5.9
+// The swift-tools-version declares the minimum version of Swift required to build this package.
+
+import PackageDescription
+
+let package = Package(
+    name: "NewsSwipe",
+    platforms: [
+        .iOS(.v17)
+    ],
+    products: [
+        .library(
+            name: "NewsSwipe",
+            targets: ["NewsSwipe"]
+        )
+    ],
+    dependencies: [
+        // FeedKit for RSS parsing
+        .package(url: "https://github.com/nmdias/FeedKit.git", from: "9.1.2")
+    ],
+    targets: [
+        .target(
+            name: "NewsSwipe",
+            dependencies: ["FeedKit"]
+        )
+    ]
+)

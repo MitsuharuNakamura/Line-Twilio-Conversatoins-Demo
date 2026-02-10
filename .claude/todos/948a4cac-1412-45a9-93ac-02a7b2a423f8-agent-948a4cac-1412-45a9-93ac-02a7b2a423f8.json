@@ -1,0 +1,86 @@
+[
+  {
+    "content": "Fix FileNotFoundError by creating train.txt and val.txt files",
+    "status": "completed",
+    "priority": "high",
+    "id": "1"
+  },
+  {
+    "content": "Fix CUDA device errors by converting .cuda() calls to .to('cpu')",
+    "status": "completed",
+    "priority": "high",
+    "id": "2"
+  },
+  {
+    "content": "Run training script and verify it starts successfully",
+    "status": "completed",
+    "priority": "high",
+    "id": "3"
+  },
+  {
+    "content": "Fix sample rate mismatch error (44100 Hz vs 24000 Hz)",
+    "status": "completed",
+    "priority": "high",
+    "id": "4"
+  },
+  {
+    "content": "Fix speaker ID KeyError by replacing 'Sumire' with '0'",
+    "status": "completed",
+    "priority": "high",
+    "id": "5"
+  },
+  {
+    "content": "Run training and monitor for successful start",
+    "status": "completed",
+    "priority": "high",
+    "id": "6"
+  },
+  {
+    "content": "Reduce batch_size to prevent memory issues and restart training",
+    "status": "completed",
+    "priority": "high",
+    "id": "7"
+  },
+  {
+    "content": "Fix channel mismatch error by adjusting audio processing parameters",
+    "status": "completed",
+    "priority": "high",
+    "id": "8"
+  },
+  {
+    "content": "Downsample audio from 44100Hz to 24000Hz to match pretrained model",
+    "status": "completed",
+    "priority": "high",
+    "id": "9"
+  },
+  {
+    "content": "Create simplified config without WavLM discriminator for CPU training",
+    "status": "completed",
+    "priority": "high",
+    "id": "10"
+  },
+  {
+    "content": "Fix BERT loading error by adding fallback initialization",
+    "status": "completed",
+    "priority": "high",
+    "id": "11"
+  },
+  {
+    "content": "Run training with all fixes and monitor progress",
+    "status": "completed",
+    "priority": "high",
+    "id": "12"
+  },
+  {
+    "content": "Create final optimized config for stable training",
+    "status": "completed",
+    "priority": "high",
+    "id": "13"
+  },
+  {
+    "content": "Stop current training and test WebUI with existing models",
+    "status": "completed",
+    "priority": "high",
+    "id": "14"
+  }
+]

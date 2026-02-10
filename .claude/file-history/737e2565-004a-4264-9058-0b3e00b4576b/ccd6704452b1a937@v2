@@ -1,0 +1,105 @@
+#!/bin/bash
+
+# United Arrows Demo - Start Script
+# Starts ngrok, updates Twilio TwiML App URL, and starts the server
+
+set -e
+
+# Load environment variables
+if [ -f .env ]; then
+  export $(cat .env | grep -v '^#' | xargs)
+else
+  echo "❌ Error: .env file not found"
+  exit 1
+fi
+
+# Check required environment variables
+if [ -z "$TWILIO_ACCOUNT_SID" ] || [ -z "$TWILIO_AUTH_TOKEN" ] || [ -z "$TWILIO_TWIML_APP_SID" ]; then
+  echo "❌ Error: Missing required environment variables"
+  echo "   Please check your .env file"
+  exit 1
+fi
+
+PORT=${PORT:-3000}
+
+echo "🚀 Starting United Arrows Demo..."
+echo ""
+
+# Step 1: Kill existing ngrok processes
+echo "🔍 Checking for existing ngrok processes..."
+if pgrep -x "ngrok" > /dev/null; then
+  echo "🛑 Stopping existing ngrok processes..."
+  pkill -x "ngrok" || true
+  sleep 2
+fi
+
+# Step 2: Kill existing server processes
+echo "🔍 Checking for existing server processes on port $PORT..."
+if lsof -ti:$PORT > /dev/null 2>&1; then
+  echo "🛑 Stopping existing server on port $PORT..."
+  lsof -ti:$PORT | xargs kill -9 || true
+  sleep 1
+fi
+
+# Step 3: Start ngrok in background
+echo "🌐 Starting ngrok on port $PORT..."
+ngrok http $PORT --log=stdout > ngrok.log 2>&1 &
+NGROK_PID=$!
+echo "   ngrok PID: $NGROK_PID"
+
+# Wait for ngrok to start
+echo "⏳ Waiting for ngrok to initialize..."
+sleep 3
+
+# Step 4: Get ngrok public URL
+echo "🔗 Retrieving ngrok public URL..."
+NGROK_URL=""
+for i in {1..10}; do
+  NGROK_URL=$(curl -s http://localhost:4040/api/tunnels | grep -o 'https://[^"]*\.ngrok-free\.app' | head -1)
+  if [ -n "$NGROK_URL" ]; then
+    break
+  fi
+  echo "   Retrying... ($i/10)"
+  sleep 1
+done
+
+if [ -z "$NGROK_URL" ]; then
+  echo "❌ Error: Failed to retrieve ngrok URL"
+  echo "   Please check ngrok.log for details"
+  pkill -P $NGROK_PID || true
+  exit 1
+fi
+
+echo "✅ ngrok URL: $NGROK_URL"
+
+# Step 5: Update Twilio TwiML App Voice URL
+echo "📞 Updating Twilio TwiML App Voice URL..."
+VOICE_URL="$NGROK_URL/voice"
+
+UPDATE_RESPONSE=$(curl -s -X POST \
+  "https://api.twilio.com/2010-04-01/Accounts/$TWILIO_ACCOUNT_SID/Applications/$TWILIO_TWIML_APP_SID.json" \
+  -u "$TWILIO_ACCOUNT_SID:$TWILIO_AUTH_TOKEN" \
+  -d "VoiceUrl=$VOICE_URL" \
+  -d "VoiceMethod=POST")
+
+if echo "$UPDATE_RESPONSE" | grep -q "\"sid\":\"$TWILIO_TWIML_APP_SID\""; then
+  echo "✅ TwiML App Voice URL updated to: $VOICE_URL"
+else
+  echo "⚠️  Warning: Failed to update TwiML App URL"
+  echo "   Please update manually: $VOICE_URL"
+fi
+
+echo ""
+echo "🎉 Setup complete!"
+echo ""
+echo "=================================="
+echo "  ngrok URL: $NGROK_URL"
+echo "  Voice URL: $VOICE_URL"
+echo "  Server: http://localhost:$PORT"
+echo "=================================="
+echo ""
+echo "🚀 Starting Node.js server..."
+echo ""
+
+# Step 6: Start the server
+npm start

@@ -1,0 +1,16 @@
+# Twilio Account Configuration
+TWILIO_ACCOUNT_SID=your_account_sid_here
+TWILIO_AUTH_TOKEN=your_auth_token_here
+
+# Twilio API Key (Create from Twilio Console)
+TWILIO_API_KEY=your_api_key_here
+TWILIO_API_SECRET=your_api_secret_here
+
+# Twilio TwiML App SID (Create from Twilio Console)
+TWILIO_TWIML_APP_SID=your_twiml_app_sid_here
+
+# OpenAI Configuration
+OPENAI_API_KEY=your_openai_api_key_here
+
+# Server Configuration
+PORT=3000

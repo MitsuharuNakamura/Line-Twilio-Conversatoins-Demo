@@ -1,0 +1,20 @@
+[
+  {
+    "content": "Add Twilio recording functionality to the /voice endpoint",
+    "status": "completed",
+    "priority": "high",
+    "id": "1"
+  },
+  {
+    "content": "Add recording status tracking and storage",
+    "status": "completed",
+    "priority": "medium",
+    "id": "2"
+  },
+  {
+    "content": "Test the recording implementation",
+    "status": "completed",
+    "priority": "medium",
+    "id": "3"
+  }
+]

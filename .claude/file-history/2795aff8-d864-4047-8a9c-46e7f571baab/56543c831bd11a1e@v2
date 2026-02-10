@@ -1,0 +1,210 @@
+import Foundation
+import TwilioVoice
+import AVFoundation
+
+class TwilioService: NSObject, ObservableObject {
+    static let shared = TwilioService()
+
+    @Published var isRegistered: Bool = false
+    @Published var currentCall: Call?
+
+    private var accessToken: String?
+    private var deviceToken: String?
+    private let baseURL = "http://localhost:3000" // Update with your server URL
+
+    private override init() {
+        super.init()
+        configureAudioSession()
+    }
+
+    // MARK: - Configuration
+
+    private func configureAudioSession() {
+        let audioSession = AVAudioSession.sharedInstance()
+        do {
+            try audioSession.setCategory(.playAndRecord, mode: .voiceChat, options: [.allowBluetooth, .allowBluetoothA2DP])
+            try audioSession.setActive(true)
+        } catch {
+            print("Failed to configure audio session: \(error.localizedDescription)")
+        }
+    }
+
+    // MARK: - Token Management
+
+    func fetchAccessToken(for type: TokenType, completion: @escaping (Result<String, Error>) -> Void) {
+        let endpoint = type == .voice ? "/token/voice" : "/token/sip"
+        guard let url = URL(string: "\(baseURL)\(endpoint)") else {
+            completion(.failure(NSError(domain: "TwilioService", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid URL"])))
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        // Add user identity if needed
+        let body = ["identity": UIDevice.current.identifierForVendor?.uuidString ?? "unknown"]
+        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                completion(.failure(error))
+                return
+            }
+
+            guard let data = data,
+                  let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                  let token = json["token"] as? String else {
+                completion(.failure(NSError(domain: "TwilioService", code: -2, userInfo: [NSLocalizedDescriptionKey: "Invalid response"])))
+                return
+            }
+
+            self.accessToken = token
+            completion(.success(token))
+        }.resume()
+    }
+
+    // MARK: - VoIP Push Registration
+
+    func registerForVoIPPushes(deviceToken: String) {
+        self.deviceToken = deviceToken
+
+        fetchAccessToken(for: .voice) { [weak self] result in
+            guard let self = self else { return }
+
+            switch result {
+            case .success(let token):
+                TwilioVoiceSDK.register(accessToken: token, deviceToken: deviceToken) { error in
+                    if let error = error {
+                        print("Failed to register for VoIP: \(error.localizedDescription)")
+                    } else {
+                        print("Successfully registered for VoIP")
+                        DispatchQueue.main.async {
+                            self.isRegistered = true
+                        }
+                    }
+                }
+            case .failure(let error):
+                print("Failed to fetch access token: \(error.localizedDescription)")
+            }
+        }
+    }
+
+    func unregisterForVoIPPushes() {
+        guard let token = accessToken, let deviceToken = deviceToken else { return }
+
+        TwilioVoiceSDK.unregister(accessToken: token, deviceToken: deviceToken) { error in
+            if let error = error {
+                print("Failed to unregister: \(error.localizedDescription)")
+            } else {
+                print("Successfully unregistered from VoIP")
+                DispatchQueue.main.async {
+                    self.isRegistered = false
+                }
+            }
+        }
+    }
+
+    // MARK: - Incoming Call Handling
+
+    func handleIncomingPush(payload: [AnyHashable: Any], completion: @escaping (Error?) -> Void) {
+        fetchAccessToken(for: .voice) { [weak self] result in
+            switch result {
+            case .success(let token):
+                TwilioVoiceSDK.handleNotification(payload, delegate: self, delegateQueue: DispatchQueue.main)
+                completion(nil)
+            case .failure(let error):
+                completion(error)
+            }
+        }
+    }
+
+    // MARK: - Outgoing Calls
+
+    func makeCall(to phoneNumber: String, completion: @escaping (Result<Call, Error>) -> Void) {
+        fetchAccessToken(for: .voice) { [weak self] result in
+            guard let self = self else { return }
+
+            switch result {
+            case .success(let token):
+                let connectOptions = ConnectOptions(accessToken: token) { builder in
+                    builder.params = ["To": phoneNumber]
+                }
+
+                let call = TwilioVoiceSDK.connect(options: connectOptions, delegate: self)
+                DispatchQueue.main.async {
+                    self.currentCall = call
+                    CallManager.shared.startOutgoingCall(to: phoneNumber)
+                }
+                completion(.success(call))
+
+            case .failure(let error):
+                completion(.failure(error))
+            }
+        }
+    }
+
+    func endCall() {
+        currentCall?.disconnect()
+        currentCall = nil
+    }
+
+    func toggleMute() {
+        guard let call = currentCall else { return }
+        call.isMuted = !call.isMuted
+    }
+
+    func toggleHold() {
+        guard let call = currentCall else { return }
+        call.isOnHold = !call.isOnHold
+    }
+}
+
+// MARK: - Supporting Types
+
+enum TokenType {
+    case voice
+    case sip
+}
+
+// MARK: - TwilioVoiceSDK Delegates
+
+extension TwilioService: NotificationDelegate {
+    func callInviteReceived(callInvite: CallInvite) {
+        print("Call invite received from: \(callInvite.from ?? "Unknown")")
+        CallKitService.shared.reportIncomingCall(from: callInvite.from ?? "Unknown", uuid: callInvite.uuid)
+    }
+
+    func cancelledCallInviteReceived(cancelledCallInvite: CancelledCallInvite, error: Error) {
+        print("Cancelled call invite: \(error.localizedDescription)")
+        CallKitService.shared.endCall(uuid: cancelledCallInvite.callSid)
+    }
+}
+
+extension TwilioService: CallDelegate {
+    func callDidConnect(call: Call) {
+        print("Call connected")
+        CallManager.shared.callConnected()
+    }
+
+    func callDidDisconnect(call: Call, error: Error?) {
+        if let error = error {
+            print("Call disconnected with error: \(error.localizedDescription)")
+        } else {
+            print("Call disconnected")
+        }
+
+        DispatchQueue.main.async {
+            self.currentCall = nil
+            CallManager.shared.endCall()
+        }
+    }
+
+    func callDidFailToConnect(call: Call, error: Error) {
+        print("Call failed to connect: \(error.localizedDescription)")
+        DispatchQueue.main.async {
+            self.currentCall = nil
+            CallManager.shared.endCall()
+        }
+    }
+}

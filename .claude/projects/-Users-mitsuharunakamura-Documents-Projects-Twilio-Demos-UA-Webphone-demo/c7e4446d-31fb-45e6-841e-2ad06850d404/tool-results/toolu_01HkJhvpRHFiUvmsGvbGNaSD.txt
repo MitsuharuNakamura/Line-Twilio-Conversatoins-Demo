@@ -1,0 +1,1121 @@
+{
+  "services": [
+    {
+      "serviceSid": "IS4967c191fc120a97fc5c1e4270e10283",
+      "friendlyName": "TwilioInvestments",
+      "documents": []
+    },
+    {
+      "serviceSid": "IScdde4fdb4557f14ddc1a57c4a9ba7e63",
+      "friendlyName": "Bulksms",
+      "documents": []
+    },
+    {
+      "serviceSid": "IS5c3599926fb3e1c6b456e4c2513cf95e",
+      "friendlyName": "Transcription",
+      "documents": [
+        {
+          "uniqueName": "outbound_document",
+          "data": {},
+          "dateCreated": "2024-08-15T08:28:31.000Z"
+        },
+        {
+          "uniqueName": "inbound_document",
+          "data": {},
+          "dateCreated": "2024-08-15T08:28:31.000Z"
+        }
+      ]
+    },
+    {
+      "serviceSid": "ISe3abebab1a774494c263f3f10ed9ad68",
+      "friendlyName": "Verify-demo",
+      "documents": [
+        {
+          "uniqueName": "user_1764905198551",
+          "data": {
+            "createdAt": "2025-12-05T03:26:38.551Z",
+            "email": "knagai@twilio.com",
+            "name": "永井慧",
+            "password": "P@ssw0rd",
+            "phone": "+818089050333"
+          },
+          "dateCreated": "2025-12-05T03:26:38.000Z"
+        }
+      ]
+    },
+    {
+      "serviceSid": "IS9640bce2c79a702391f0895c9232fcf1",
+      "friendlyName": "ConciergePhoneSystem",
+      "documents": [
+        {
+          "uniqueName": "transcription_CA2dd66238a643fb47425043b1d35bf395",
+          "data": {
+            "conferenceSid": "CA2dd66238a643fb47425043b1d35bf395",
+            "lastUpdated": "2025-06-27T08:48:13.260Z",
+            "startTime": "2025-06-27T08:48:05.665Z",
+            "transcripts": [
+              {
+                "id": "GT75ea52e689324c33c351e309e4677b91",
+                "participantSid": "unknown",
+                "sequenceId": "2",
+                "text": "聞こえ！",
+                "timestamp": "2025-06-27T08:48:05.627Z",
+                "track": "inbound_track"
+              },
+              {
+                "id": "GT75ea52e689324c33c351e309e4677b91",
+                "participantSid": "unknown",
+                "sequenceId": "3",
+                "text": "聞こえます。",
+                "timestamp": "2025-06-27T08:48:05.758Z",
+                "track": "inbound_track"
+              },
+              {
+                "id": "GT75ea52e689324c33c351e309e4677b91",
+                "participantSid": "unknown",
+                "sequenceId": "4",
+                "text": "聞こえます。",
+                "timestamp": "2025-06-27T08:48:07.100Z",
+                "track": "inbound_track"
+              },
+              {
+                "id": "GT75ea52e689324c33c351e309e4677b91",
+                "participantSid": "unknown",
+                "sequenceId": "5",
+                "text": " 以上。",
+                "timestamp": "2025-06-27T08:48:11.917Z",
+                "track": "inbound_track"
+              },
+              {
+                "id": "GT75ea52e689324c33c351e309e4677b91",
+                "participantSid": "unknown",
+                "sequenceId": "6",
+                "text": " 以上。",
+                "timestamp": "2025-06-27T08:48:13.206Z",
+                "track": "inbound_track"
+              }
+            ]
+          },
+          "dateCreated": "2025-06-27T08:48:05.000Z"
+        },
+        {
+          "uniqueName": "transcription_CAbdae5da988c2c6ffbda2fc13a68b1101",
+          "data": {
+            "conferenceSid": "CAbdae5da988c2c6ffbda2fc13a68b1101",
+            "lastUpdated": "2025-06-27T08:55:16.706Z",
+            "startTime": "2025-06-27T08:54:35.145Z",
+            "transcripts": [
+              {
+                "id": "GT69035f07b86187886d1a2f2d85e29e40",
+                "participantSid": "unknown",
+                "sequenceId": "2",
+                "text": "もしもし。",
+                "timestamp": "2025-06-27T08:54:35.105Z",
+                "track": "inbound_track"
+              },
+              {
+                "id": "GT69035f07b86187886d1a2f2d85e29e40",
+                "participantSid": "unknown",
+                "sequenceId": "3",
+                "text": "もしもし。",
+                "timestamp": "2025-06-27T08:54:35.781Z",
+                "track": "inbound_track"
+              },
+              {
+                "id": "GT69035f07b86187886d1a2f2d85e29e40",
+                "participantSid": "unknown",
+                "sequenceId": "4",
+                "text": "もしもし。",
+                "timestamp": "2025-06-27T08:54:36.712Z",
+                "track": "inbound_track"
+              },
+              {
+                "id": "GT69035f07b86187886d1a2f2d85e29e40",
+                "participantSid": "unknown",
+                "sequenceId": "5",
+                "text": " 大。",
+                "timestamp": "2025-06-27T08:54:37.938Z",
+                "track": "inbound_track"
+              },
+              {
+                "id": "GT69035f07b86187886d1a2f2d85e29e40",
+                "participantSid": "unknown",
+                "sequenceId": "6",
+                "text": " 大山。",
+                "timestamp": "2025-06-27T08:54:38.008Z",
+                "track": "inbound_track"
+              },
+              {
+                "id": "GT69035f07b86187886d1a2f2d85e29e40",
+                "participantSid": "unknown",
+                "sequenceId": "7",
+                "text": " 大山さん。",
+                "timestamp": "2025-06-27T08:54:38.422Z",
+                "track": "inbound_track"
+              },
+              {
+                "id": "GT69035f07b86187886d1a2f2d85e29e40",
+                "participantSid": "unknown",
+                "sequenceId": "8",
+                "text": " 大山さん。",
+                "timestamp": "2025-06-27T08:54:39.408Z",
+                "track": "inbound_track"
+              },
+              {
+                "id": "GT69035f07b86187886d1a2f2d85e29e40",
+                "participantSid": "unknown",
+                "sequenceId": "9",
+                "text": " 聞こえ！",
+                "timestamp": "2025-06-27T08:54:41.712Z",
+                "track": "inbound_track"
+              },
+              {
+                "id": "GT69035f07b86187886d1a2f2d85e29e40",
+                "participantSid": "unknown",
+                "sequenceId": "10",
+                "text": " 聞こえます。",
+                "timestamp": "2025-06-27T08:54:42.024Z",
+                "track": "inbound_track"
+              },
+              {
+                "id": "GT69035f07b86187886d1a2f2d85e29e40",
+                "participantSid": "unknown",
+                "sequenceId": "11",
+                "text": " 聞こえますか？",
+                "timestamp": "2025-06-27T08:54:42.153Z",
+                "track": "inbound_track"
+              },
+              {
+                "id": "GT69035f07b86187886d1a2f2d85e29e40",
+                "participantSid": "unknown",
+                "sequenceId": "12",
+                "text": " 聞こえますか？",
+                "timestamp": "2025-06-27T08:54:43.207Z",
+                "track": "inbound_track"
+              },
+              {
+                "id": "GT69035f07b86187886d1a2f2d85e29e40",
+                "participantSid": "unknown",
+                "sequenceId": "13",
+                "text": "はい。",
+                "timestamp": "2025-06-27T08:54:59.834Z",
+                "track": "outbound_track"
+              },
+              {
+                "id": "GT69035f07b86187886d1a2f2d85e29e40",
+                "participantSid": "unknown",
+                "sequenceId": "14",
+                "text": "はい、聞こえ。",
+                "timestamp": "2025-06-27T08:55:00.143Z",
+                "track": "outbound_track"
+              },
+              {
+                "id": "GT69035f07b86187886d1a2f2d85e29e40",
+                "participantSid": "unknown",
+                "sequenceId": "15",
+                "text": "はい、聞こえます。",
+                "timestamp": "2025-06-27T08:55:00.457Z",
+                "track": "outbound_track"
+              },
+              {
+                "id": "GT69035f07b86187886d1a2f2d85e29e40",
+                "participantSid": "unknown",
+                "sequenceId": "16",
+                "text": "はい、聞こえます。",
+                "timestamp": "2025-06-27T08:55:01.027Z",
+                "track": "outbound_track"
+              },
+              {
+                "id": "GT69035f07b86187886d1a2f2d85e29e40",
+                "participantSid": "unknown",
+                "sequenceId": "17",
+                "text": "はい、聞こえます。どう？",
+                "timestamp": "2025-06-27T08:55:01.148Z",
+                "track": "outbound_track"
+              },
+              {
+                "id": "GT69035f07b86187886d1a2f2d85e29e40",
+                "participantSid": "unknown",
+                "sequenceId": "18",
+                "text": "はい、聞こえます。どうし？",
+                "timestamp": "2025-06-27T08:55:01.327Z",
+                "track": "outbound_track"
+              },
+              {
+                "id": "GT69035f07b86187886d1a2f2d85e29e40",
+                "participantSid": "unknown",
+                "sequenceId": "19",
+                "text": "はい、聞こえます。どうしまし？",
+                "timestamp": "2025-06-27T08:55:01.460Z",
+                "track": "outbound_track"
+              },
+              {
+                "id": "GT69035f07b86187886d1a2f2d85e29e40",
+                "participantSid": "unknown",
+                "sequenceId": "21",
+                "text": "はい、聞こえます。どうしましたか？",
+                "timestamp": "2025-06-27T08:55:02.058Z",
+                "track": "outbound_track"
+              },
+              {
+                "id": "GT69035f07b86187886d1a2f2d85e29e40",
+                "participantSid": "unknown",
+                "sequenceId": "22",
+                "text": "はい、聞こえます。どうしましたか？",
+                "timestamp": "2025-06-27T08:55:02.515Z",
+                "track": "outbound_track"
+              },
+              {
+                "id": "GT69035f07b86187886d1a2f2d85e29e40",
+                "participantSid": "unknown",
+                "sequenceId": "23",
+                "text": "聞こえる？",
+                "timestamp": "2025-06-27T08:55:15.390Z",
+                "track": "inbound_track"
+              },
+              {
+                "id": "GT69035f07b86187886d1a2f2d85e29e40",
+                "participantSid": "unknown",
+                "sequenceId": "24",
+                "text": "聞こえる？",
+                "timestamp": "2025-06-27T08:55:16.648Z",
+                "track": "inbound_track"
+              }
+            ]
+          },
+          "dateCreated": "2025-06-27T08:54:35.000Z"
+        },
+        {
+          "uniqueName": "transcription_CA5116b3723520f207fb743d778291befe",
+          "data": {
+            "conferenceSid": "CA5116b3723520f207fb743d778291befe",
+            "lastUpdated": "2025-06-27T08:59:31.867Z",
+            "startTime": "2025-06-27T08:59:17.309Z",
+            "transcripts": [
+              {
+                "id": "GT869e0cc694931be2570a9b490a05d266",
+                "participantSid": "unknown",
+                "sequenceId": "2",
+                "text": "もしもし よろしくお願いします。",
+                "timestamp": "2025-06-27T08:59:17.269Z",
+                "track": "inbound_track"
+              },
+              {
+                "id": "GT869e0cc694931be2570a9b490a05d266",
+                "participantSid": "unknown",
+                "sequenceId": "3",
+                "text": "こちらこそです。今日 色々質問があります。",
+                "timestamp": "2025-06-27T08:59:31.826Z",
+                "track": "outbound_track"
+              }
+            ]
+          },
+          "dateCreated": "2025-06-27T08:59:17.000Z"
+        },
+        {
+          "uniqueName": "transcription_CAed71278d3226ebfe898860689c21a313",
+          "data": {
+            "conferenceSid": "CAed71278d3226ebfe898860689c21a313",
+            "lastUpdated": "2025-06-27T09:08:11.399Z",
+            "startTime": "2025-06-27T09:07:42.439Z",
+            "transcripts": [
+              {
+                "id": "GTce229a7373525e62391ebc73651f05af",
+                "participantSid": "unknown",
+                "sequenceId": "2",
+                "text": "もしもし よろしくお願いします。",
+                "timestamp": "2025-06-27T09:07:42.387Z",
+                "track": "outbound_track"
+              },
+              {
+                "id": "GTce229a7373525e62391ebc73651f05af",
+                "participantSid": "unknown",
+                "sequenceId": "3",
+                "text": "はい、よろしくお願いします。",
+                "timestamp": "2025-06-27T09:07:49.417Z",
+                "track": "inbound_track"
+              },
+              {
+                "id": "GTce229a7373525e62391ebc73651f05af",
+                "participantSid": "unknown",
+                "sequenceId": "4",
+                "text": "今日のご算はどんなご 読みですか？",
+                "timestamp": "2025-06-27T09:07:59.198Z",
+                "track": "inbound_track"
+              },
+              {
+                "id": "GTce229a7373525e62391ebc73651f05af",
+                "participantSid": "unknown",
+                "sequenceId": "5",
+                "text": "予約した情報を。",
+                "timestamp": "2025-06-27T09:08:09.394Z",
+                "track": "outbound_track"
+              },
+              {
+                "id": "GTce229a7373525e62391ebc73651f05af",
+                "participantSid": "unknown",
+                "sequenceId": "6",
+                "text": " 確認したいです。",
+                "timestamp": "2025-06-27T09:08:11.343Z",
+                "track": "outbound_track"
+              }
+            ]
+          },
+          "dateCreated": "2025-06-27T09:07:42.000Z"
+        },
+        {
+          "uniqueName": "transcription_CAdd07314207c090c27df4a549ea5a570d",
+          "data": {
+            "conferenceSid": "CAdd07314207c090c27df4a549ea5a570d",
+            "lastUpdated": "2025-06-27T09:20:36.041Z",
+            "startTime": "2025-06-27T09:20:21.129Z",
+            "transcripts": [
+              {
+                "id": "GT8784470242fc6c82e6fb895d28571920",
+                "participantSid": "unknown",
+                "sequenceId": "2",
+                "text": "もしもし。",
+                "timestamp": "2025-06-27T09:20:21.057Z",
+                "track": "inbound_track"
+              },
+              {
+                "id": "GT8784470242fc6c82e6fb895d28571920",
+                "participantSid": "unknown",
+                "sequenceId": "3",
+                "text": "今日の要件を今から伝えてもいいですか？",
+                "timestamp": "2025-06-27T09:20:36.002Z",
+                "track": "outbound_track"
+              }
+            ]
+          },
+          "dateCreated": "2025-06-27T09:20:21.000Z"
+        },
+        {
+          "uniqueName": "transcription_CA8cc9d41caac2163c7ca3d0cf4ac7d945",
+          "data": {
+            "conferenceSid": "CA8cc9d41caac2163c7ca3d0cf4ac7d945",
+            "lastUpdated": "2025-06-27T09:32:01.454Z",
+            "startTime": "2025-06-27T09:31:42.538Z",
+            "transcripts": [
+              {
+                "id": "GTdace71c8d7ac228e3d27c84076480638",
+                "participantSid": "unknown",
+                "sequenceId": "2",
+                "text": "もし。",
+                "timestamp": "2025-06-27T09:31:42.477Z",
+                "track": "inbound_track"
+              },
+              {
+                "id": "GTdace71c8d7ac228e3d27c84076480638",
+                "participantSid": "unknown",
+                "sequenceId": "3",
+                "text": "もしもし。",
+                "timestamp": "2025-06-27T09:31:50.003Z",
+                "track": "outbound_track"
+              },
+              {
+                "id": "GTdace71c8d7ac228e3d27c84076480638",
+                "participantSid": "unknown",
+                "sequenceId": "4",
+                "text": " サポートセンターですが、ございますか？",
+                "timestamp": "2025-06-27T09:32:01.352Z",
+                "track": "inbound_track"
+              }
+            ]
+          },
+          "dateCreated": "2025-06-27T09:31:42.000Z"
+        },
+        {
+          "uniqueName": "transcription_CAa4bb79db184b6109eaddfa01c92c8782",
+          "data": {
+            "conferenceSid": "CAa4bb79db184b6109eaddfa01c92c8782",
+            "lastUpdated": "2025-06-27T09:32:43.983Z",
+            "startTime": "2025-06-27T09:32:43.983Z",
+            "transcripts": [
+              {
+                "id": "GT9455d9d946f4e143b28de6ab93a53b19",
+                "participantSid": "unknown",
+                "sequenceId": "2",
+                "text": "様 本日の声ではないでしょうか？",
+                "timestamp": "2025-06-27T09:32:43.935Z",
+                "track": "inbound_track"
+              }
+            ]
+          },
+          "dateCreated": "2025-06-27T09:32:44.000Z"
+        },
+        {
+          "uniqueName": "transcription_CA880899b740606cef0ca2fd40232fd444",
+          "data": {
+            "conferenceSid": "CA880899b740606cef0ca2fd40232fd444",
+            "lastUpdated": "2025-06-27T10:37:48.107Z",
+            "startTime": "2025-06-27T10:37:33.980Z",
+            "transcripts": [
+              {
+                "id": "GT44703b69783468aa7461562233fa0ae9",
+                "participantSid": "unknown",
+                "sequenceId": "2",
+                "text": "はい、こちらは シェル デスクです。",
+                "timestamp": "2025-06-27T10:37:33.938Z",
+                "track": "inbound_track"
+              },
+              {
+                "id": "GT44703b69783468aa7461562233fa0ae9",
+                "participantSid": "unknown",
+                "sequenceId": "3",
+                "text": "予約の確認をしたい。",
+                "timestamp": "2025-06-27T10:37:48.049Z",
+                "track": "outbound_track"
+              }
+            ]
+          },
+          "dateCreated": "2025-06-27T10:37:34.000Z"
+        },
+        {
+          "uniqueName": "transcription_CA5f6a2f53c3e3ac9809fb4d2e095d2d31",
+          "data": {
+            "conferenceSid": "CA5f6a2f53c3e3ac9809fb4d2e095d2d31",
+            "lastUpdated": "2025-06-27T12:12:00.176Z",
+            "startTime": "2025-06-27T12:10:23.289Z",
+            "transcripts": [
+              {
+                "id": "GTd24ba7ec6bb024bf8d2dcaf2d62fa40a",
+                "participantSid": "unknown",
+                "sequenceId": "2",
+                "text": "英語を日本語に翻訳する通訳です。英語でお話しいただければ 日本で翻訳します。",
+                "timestamp": "2025-06-27T12:10:23.245Z",
+                "track": "outbound_track"
+              },
+              {
+                "id": "GTd24ba7ec6bb024bf8d2dcaf2d62fa40a",
+                "participantSid": "unknown",
+                "sequenceId": "3",
+                "text": " ハロー！",
+                "timestamp": "2025-06-27T12:10:45.456Z",
+                "track": "outbound_track"
+              },
+              {
+                "id": "GTd24ba7ec6bb024bf8d2dcaf2d62fa40a",
+                "participantSid": "unknown",
+                "sequenceId": "4",
+                "text": " 聞こえていますよ。",
+                "timestamp": "2025-06-27T12:11:00.122Z",
+                "track": "outbound_track"
+              },
+              {
+                "id": "GTd24ba7ec6bb024bf8d2dcaf2d62fa40a",
+                "participantSid": "unknown",
+                "sequenceId": "5",
+                "text": "あなたの声を翻訳しますね。",
+                "timestamp": "2025-06-27T12:11:14.101Z",
+                "track": "outbound_track"
+              },
+              {
+                "id": "GTd24ba7ec6bb024bf8d2dcaf2d62fa40a",
+                "participantSid": "unknown",
+                "sequenceId": "6",
+                "text": "今は何時ですか？",
+                "timestamp": "2025-06-27T12:11:33.467Z",
+                "track": "outbound_track"
+              },
+              {
+                "id": "GTd24ba7ec6bb024bf8d2dcaf2d62fa40a",
+                "participantSid": "unknown",
+                "sequenceId": "7",
+                "text": "今日は9時だね。",
+                "timestamp": "2025-06-27T12:11:37.788Z",
+                "track": "outbound_track"
+              },
+              {
+                "id": "GTd24ba7ec6bb024bf8d2dcaf2d62fa40a",
+                "participantSid": "unknown",
+                "sequenceId": "8",
+                "text": "何人の学生ですか？",
+                "timestamp": "2025-06-27T12:11:52.335Z",
+                "track": "outbound_track"
+              },
+              {
+                "id": "GTd24ba7ec6bb024bf8d2dcaf2d62fa40a",
+                "participantSid": "unknown",
+                "sequenceId": "9",
+                "text": "何人の学生ですか？",
+                "timestamp": "2025-06-27T12:12:00.138Z",
+                "track": "outbound_track"
+              }
+            ]
+          },
+          "dateCreated": "2025-06-27T12:10:23.000Z"
+        },
+        {
+          "uniqueName": "transcription_CAedb67f47403c148aae01cc8f093b032c",
+          "data": {
+            "conferenceSid": "CAedb67f47403c148aae01cc8f093b032c",
+            "lastUpdated": "2025-06-30T04:59:58.600Z",
+            "startTime": "2025-06-30T04:59:47.921Z",
+            "transcripts": [
+              {
+                "id": "GT5cda2707c64c711bfce65b05cec0a1cc",
+                "participantSid": "unknown",
+                "sequenceId": "2",
+                "text": "もしもし聞こえますか？",
+                "timestamp": "2025-06-30T04:59:47.877Z",
+                "track": "inbound_track"
+              },
+              {
+                "id": "GT5cda2707c64c711bfce65b05cec0a1cc",
+                "participantSid": "unknown",
+                "sequenceId": "3",
+                "text": "はい、聞こえてますよ。",
+                "timestamp": "2025-06-30T04:59:58.530Z",
+                "track": "outbound_track"
+              }
+            ]
+          },
+          "dateCreated": "2025-06-30T04:59:47.000Z"
+        },
+        {
+          "uniqueName": "transcription_CA5467fbb73753f6dcc07f1a75f6d3d602",
+          "data": {
+            "conferenceSid": "CA5467fbb73753f6dcc07f1a75f6d3d602",
+            "lastUpdated": "2025-06-30T12:55:22.416Z",
+            "startTime": "2025-06-30T12:54:37.023Z",
+            "transcripts": [
+              {
+                "id": "GT31cf3ae3b19bf3aa44ba6e7a53f0af07",
+                "participantSid": "unknown",
+                "sequenceId": "2",
+                "text": "英語を日本語に翻訳する通訳です。英語でお話しいただければ 日本で翻訳します。",
+                "timestamp": "2025-06-30T12:54:36.982Z",
+                "track": "outbound_track"
+              },
+              {
+                "id": "GT31cf3ae3b19bf3aa44ba6e7a53f0af07",
+                "participantSid": "unknown",
+                "sequenceId": "3",
+                "text": "はい、ハロー！how you！",
+                "timestamp": "2025-06-30T12:54:41.321Z",
+                "track": "outbound_track"
+              },
+              {
+                "id": "GT31cf3ae3b19bf3aa44ba6e7a53f0af07",
+                "participantSid": "unknown",
+                "sequenceId": "4",
+                "text": " こんにちは。今日の天気はどうですか？",
+                "timestamp": "2025-06-30T12:54:54.267Z",
+                "track": "outbound_track"
+              },
+              {
+                "id": "GT31cf3ae3b19bf3aa44ba6e7a53f0af07",
+                "participantSid": "unknown",
+                "sequenceId": "5",
+                "text": "なんか動いてない気がするね。",
+                "timestamp": "2025-06-30T12:55:22.373Z",
+                "track": "outbound_track"
+              }
+            ]
+          },
+          "dateCreated": "2025-06-30T12:54:37.000Z"
+        },
+        {
+          "uniqueName": "transcription_CA1dcc35eeb09a78d27befd3b32de6335a",
+          "data": {
+            "conferenceSid": "CA1dcc35eeb09a78d27befd3b32de6335a",
+            "lastUpdated": "2025-06-30T13:00:13.584Z",
+            "startTime": "2025-06-30T12:59:41.915Z",
+            "transcripts": [
+              {
+                "id": "GTdb00188666ab9735b522e1153b07bd84",
+                "participantSid": "unknown",
+                "sequenceId": "2",
+                "text": "jap。",
+                "timestamp": "2025-06-30T12:59:41.855Z",
+                "track": "outbound_track"
+              },
+              {
+                "id": "GTdb00188666ab9735b522e1153b07bd84",
+                "participantSid": "unknown",
+                "sequenceId": "3",
+                "text": " こんにちは。",
+                "timestamp": "2025-06-30T12:59:48.292Z",
+                "track": "outbound_track"
+              },
+              {
+                "id": "GTdb00188666ab9735b522e1153b07bd84",
+                "participantSid": "unknown",
+                "sequenceId": "4",
+                "text": "今日のご要件は何ですか？",
+                "timestamp": "2025-06-30T13:00:00.225Z",
+                "track": "outbound_track"
+              },
+              {
+                "id": "GTdb00188666ab9735b522e1153b07bd84",
+                "participantSid": "unknown",
+                "sequenceId": "5",
+                "text": " には赤い星がたくさん広がっていますね。",
+                "timestamp": "2025-06-30T13:00:13.520Z",
+                "track": "outbound_track"
+              }
+            ]
+          },
+          "dateCreated": "2025-06-30T12:59:41.000Z"
+        },
+        {
+          "uniqueName": "transcription_CA98042b67c9bb026c14f4721a87638181",
+          "data": {
+            "conferenceSid": "CA98042b67c9bb026c14f4721a87638181",
+            "lastUpdated": "2025-07-02T00:03:02.903Z",
+            "startTime": "2025-07-02T00:01:21.227Z",
+            "transcripts": [
+              {
+                "id": "GTd5cc389b8d6832a3a5227582d652ee4d",
+                "participantSid": "unknown",
+                "sequenceId": "2",
+                "text": "もしもし。",
+                "timestamp": "2025-07-02T00:01:21.184Z",
+                "track": "outbound_track"
+              },
+              {
+                "id": "GTd5cc389b8d6832a3a5227582d652ee4d",
+                "participantSid": "unknown",
+                "sequenceId": "3",
+                "text": " に翻訳します。",
+                "timestamp": "2025-07-02T00:01:36.273Z",
+                "track": "outbound_track"
+              },
+              {
+                "id": "GTd5cc389b8d6832a3a5227582d652ee4d",
+                "participantSid": "unknown",
+                "sequenceId": "4",
+                "text": "今日の天気って さな。どうだった？",
+                "timestamp": "2025-07-02T00:01:45.102Z",
+                "track": "outbound_track"
+              },
+              {
+                "id": "GTd5cc389b8d6832a3a5227582d652ee4d",
+                "participantSid": "unknown",
+                "sequenceId": "5",
+                "text": " 今日の東京の天気は最高気温が約30°で晴れ時ど曇りの予報です。湿度も高めなので、熱中症に注意して水分をこまめに取ると良いでしょう。また日焼け止めを忘れずに使ってくださいね。",
+                "timestamp": "2025-07-02T00:02:01.708Z",
+                "track": "outbound_track"
+              },
+              {
+                "id": "GTd5cc389b8d6832a3a5227582d652ee4d",
+                "participantSid": "unknown",
+                "sequenceId": "6",
+                "text": "通訳 しよう。",
+                "timestamp": "2025-07-02T00:02:09.474Z",
+                "track": "inbound_track"
+              },
+              {
+                "id": "GTd5cc389b8d6832a3a5227582d652ee4d",
+                "participantSid": "unknown",
+                "sequenceId": "7",
+                "text": " ということでした。いいですかね？",
+                "timestamp": "2025-07-02T00:02:32.456Z",
+                "track": "inbound_track"
+              },
+              {
+                "id": "GTd5cc389b8d6832a3a5227582d652ee4d",
+                "participantSid": "unknown",
+                "sequenceId": "8",
+                "text": "ありがとうございました。",
+                "timestamp": "2025-07-02T00:03:02.856Z",
+                "track": "outbound_track"
+              }
+            ]
+          },
+          "dateCreated": "2025-07-02T00:01:21.000Z"
+        },
+        {
+          "uniqueName": "transcription_CAcfd738c8a697a144f0be93aee3dd1d27",
+          "data": {
+            "conferenceSid": "CAcfd738c8a697a144f0be93aee3dd1d27",
+            "lastUpdated": "2025-07-05T09:30:58.681Z",
+            "startTime": "2025-07-05T09:30:43.677Z",
+            "transcripts": [
+              {
+                "id": "GTf67232b554b93600926b0b17464cf1c4",
+                "participantSid": "unknown",
+                "sequenceId": "2",
+                "text": "jap。",
+                "timestamp": "2025-07-05T09:30:43.633Z",
+                "track": "outbound_track"
+              },
+              {
+                "id": "GTf67232b554b93600926b0b17464cf1c4",
+                "participantSid": "unknown",
+                "sequenceId": "3",
+                "text": " 今日はトイレに行きたい。",
+                "timestamp": "2025-07-05T09:30:46.721Z",
+                "track": "outbound_track"
+              },
+              {
+                "id": "GTf67232b554b93600926b0b17464cf1c4",
+                "participantSid": "unknown",
+                "sequenceId": "4",
+                "text": "トイレに行きたいよ。",
+                "timestamp": "2025-07-05T09:30:58.627Z",
+                "track": "outbound_track"
+              }
+            ]
+          },
+          "dateCreated": "2025-07-05T09:30:43.000Z"
+        },
+        {
+          "uniqueName": "transcription_CA8bb75582ed54ff723a6e95a1b2f15933",
+          "data": {
+            "conferenceSid": "CA8bb75582ed54ff723a6e95a1b2f15933",
+            "lastUpdated": "2025-07-05T09:39:20.317Z",
+            "startTime": "2025-07-05T09:39:02.954Z",
+            "transcripts": [
+              {
+                "id": "GT3015a541850bb7b9d315a11f387bb477",
+                "participantSid": "unknown",
+                "sequenceId": "2",
+                "text": "jap。",
+                "timestamp": "2025-07-05T09:39:02.907Z",
+                "track": "outbound_track"
+              },
+              {
+                "id": "GT3015a541850bb7b9d315a11f387bb477",
+                "participantSid": "unknown",
+                "sequenceId": "3",
+                "text": " こんにちは。",
+                "timestamp": "2025-07-05T09:39:06.768Z",
+                "track": "outbound_track"
+              },
+              {
+                "id": "GT3015a541850bb7b9d315a11f387bb477",
+                "participantSid": "unknown",
+                "sequenceId": "4",
+                "text": "いい感じですね。",
+                "timestamp": "2025-07-05T09:39:20.269Z",
+                "track": "inbound_track"
+              }
+            ]
+          },
+          "dateCreated": "2025-07-05T09:39:03.000Z"
+        },
+        {
+          "uniqueName": "transcription_CAced4359234e0498199764c00558e3a44",
+          "data": {
+            "conferenceSid": "CAced4359234e0498199764c00558e3a44",
+            "lastUpdated": "2025-07-12T12:56:12.244Z",
+            "startTime": "2025-07-12T12:55:55.119Z",
+            "transcripts": [
+              {
+                "id": "GT78af9c1cf2d77a2022e4d64d99c47f1e",
+                "participantSid": "unknown",
+                "sequenceId": "2",
+                "text": "お答えします。ご質問をどうぞ。",
+                "timestamp": "2025-07-12T12:55:55.077Z",
+                "track": "outbound_track"
+              },
+              {
+                "id": "GT78af9c1cf2d77a2022e4d64d99c47f1e",
+                "participantSid": "unknown",
+                "sequenceId": "3",
+                "text": " お箸 ありますか？",
+                "timestamp": "2025-07-12T12:55:58.435Z",
+                "track": "outbound_track"
+              },
+              {
+                "id": "GT78af9c1cf2d77a2022e4d64d99c47f1e",
+                "participantSid": "unknown",
+                "sequenceId": "4",
+                "text": "はい、お箸はございます。",
+                "timestamp": "2025-07-12T12:56:03.082Z",
+                "track": "outbound_track"
+              },
+              {
+                "id": "GT78af9c1cf2d77a2022e4d64d99c47f1e",
+                "participantSid": "unknown",
+                "sequenceId": "5",
+                "text": "お部屋にご用意しておりますので、必要な場合は フロントにお申し付けください。どうぞお気軽にご利用ください。",
+                "timestamp": "2025-07-12T12:56:12.192Z",
+                "track": "outbound_track"
+              }
+            ]
+          },
+          "dateCreated": "2025-07-12T12:55:55.000Z"
+        },
+        {
+          "uniqueName": "transcription_CA4f18dff582622ff7a492bff1f35fd2f6",
+          "data": {
+            "conferenceSid": "CA4f18dff582622ff7a492bff1f35fd2f6",
+            "lastUpdated": "2025-07-12T13:01:50.734Z",
+            "startTime": "2025-07-12T13:00:15.492Z",
+            "transcripts": [
+              {
+                "id": "GTccef72e293cbf6e05490cf9efa485358",
+                "participantSid": "unknown",
+                "sequenceId": "2",
+                "text": "もしもし。",
+                "timestamp": "2025-07-12T13:00:15.443Z",
+                "track": "outbound_track"
+              },
+              {
+                "id": "GTccef72e293cbf6e05490cf9efa485358",
+                "participantSid": "unknown",
+                "sequenceId": "3",
+                "text": " I interp。",
+                "timestamp": "2025-07-12T13:00:31.189Z",
+                "track": "outbound_track"
+              },
+              {
+                "id": "GTccef72e293cbf6e05490cf9efa485358",
+                "participantSid": "unknown",
+                "sequenceId": "4",
+                "text": " japanese。",
+                "timestamp": "2025-07-12T13:00:33.599Z",
+                "track": "outbound_track"
+              },
+              {
+                "id": "GTccef72e293cbf6e05490cf9efa485358",
+                "participantSid": "unknown",
+                "sequenceId": "5",
+                "text": " トイレの場所教えてください。",
+                "timestamp": "2025-07-12T13:00:36.845Z",
+                "track": "outbound_track"
+              },
+              {
+                "id": "GTccef72e293cbf6e05490cf9efa485358",
+                "participantSid": "unknown",
+                "sequenceId": "6",
+                "text": "ありがとうございます。",
+                "timestamp": "2025-07-12T13:00:45.435Z",
+                "track": "outbound_track"
+              },
+              {
+                "id": "GTccef72e293cbf6e05490cf9efa485358",
+                "participantSid": "unknown",
+                "sequenceId": "7",
+                "text": "昨日の行った本屋さんてどこ？",
+                "timestamp": "2025-07-12T13:00:56.480Z",
+                "track": "outbound_track"
+              },
+              {
+                "id": "GTccef72e293cbf6e05490cf9efa485358",
+                "participantSid": "unknown",
+                "sequenceId": "8",
+                "text": " こんにちは。英語を日本語に翻訳する通訳です。英語でお話しいただければ 日本で翻訳します。",
+                "timestamp": "2025-07-12T13:01:25.477Z",
+                "track": "outbound_track"
+              },
+              {
+                "id": "GTccef72e293cbf6e05490cf9efa485358",
+                "participantSid": "unknown",
+                "sequenceId": "9",
+                "text": "how。",
+                "timestamp": "2025-07-12T13:01:45.804Z",
+                "track": "outbound_track"
+              },
+              {
+                "id": "GTccef72e293cbf6e05490cf9efa485358",
+                "participantSid": "unknown",
+                "sequenceId": "10",
+                "text": " 旅行はどうでしたか？",
+                "timestamp": "2025-07-12T13:01:50.677Z",
+                "track": "outbound_track"
+              }
+            ]
+          },
+          "dateCreated": "2025-07-12T13:00:15.000Z"
+        },
+        {
+          "uniqueName": "transcription_CA1d01ac72a851f3a9934e30f315d39b79",
+          "data": {
+            "conferenceSid": "CA1d01ac72a851f3a9934e30f315d39b79",
+            "lastUpdated": "2025-07-15T02:09:46.573Z",
+            "startTime": "2025-07-15T02:07:02.840Z",
+            "transcripts": [
+              {
+                "id": "GT27e13a0070be842e4935510b7467c01b",
+                "participantSid": "unknown",
+                "sequenceId": "2",
+                "text": "こんにちは。英語を日本語に翻訳する通訳です。英語でお話しいただければ 日本で翻訳します。",
+                "timestamp": "2025-07-15T02:07:02.757Z",
+                "track": "outbound_track"
+              },
+              {
+                "id": "GT27e13a0070be842e4935510b7467c01b",
+                "participantSid": "unknown",
+                "sequenceId": "3",
+                "text": "ハログと何。",
+                "timestamp": "2025-07-15T02:07:06.808Z",
+                "track": "outbound_track"
+              },
+              {
+                "id": "GT27e13a0070be842e4935510b7467c01b",
+                "participantSid": "unknown",
+                "sequenceId": "4",
+                "text": " ハロー！goodモー！",
+                "timestamp": "2025-07-15T02:07:15.709Z",
+                "track": "outbound_track"
+              },
+              {
+                "id": "GT27e13a0070be842e4935510b7467c01b",
+                "participantSid": "unknown",
+                "sequenceId": "5",
+                "text": " おはようございます。",
+                "timestamp": "2025-07-15T02:07:19.346Z",
+                "track": "outbound_track"
+              },
+              {
+                "id": "GT27e13a0070be842e4935510b7467c01b",
+                "participantSid": "unknown",
+                "sequenceId": "6",
+                "text": "今日の天気は晴れ。",
+                "timestamp": "2025-07-15T02:07:41.904Z",
+                "track": "outbound_track"
+              },
+              {
+                "id": "GT27e13a0070be842e4935510b7467c01b",
+                "participantSid": "unknown",
+                "sequenceId": "7",
+                "text": " today。",
+                "timestamp": "2025-07-15T02:07:46.405Z",
+                "track": "outbound_track"
+              },
+              {
+                "id": "GT27e13a0070be842e4935510b7467c01b",
+                "participantSid": "unknown",
+                "sequenceId": "8",
+                "text": "質問にお答えします。",
+                "timestamp": "2025-07-15T02:08:04.845Z",
+                "track": "outbound_track"
+              },
+              {
+                "id": "GT27e13a0070be842e4935510b7467c01b",
+                "participantSid": "unknown",
+                "sequenceId": "9",
+                "text": "ご質問をどうぞ。",
+                "timestamp": "2025-07-15T02:08:07.347Z",
+                "track": "outbound_track"
+              },
+              {
+                "id": "GT27e13a0070be842e4935510b7467c01b",
+                "participantSid": "unknown",
+                "sequenceId": "10",
+                "text": " え、トイレはいくつありますか？",
+                "timestamp": "2025-07-15T02:08:15.871Z",
+                "track": "outbound_track"
+              },
+              {
+                "id": "GT27e13a0070be842e4935510b7467c01b",
+                "participantSid": "unknown",
+                "sequenceId": "11",
+                "text": "部屋にトイレは はい。トイレのはお部屋のタイプによって。",
+                "timestamp": "2025-07-15T02:08:27.361Z",
+                "track": "outbound_track"
+              },
+              {
+                "id": "GT27e13a0070be842e4935510b7467c01b",
+                "participantSid": "unknown",
+                "sequenceId": "12",
+                "text": " お部屋に設置されているトイレの数は、部屋のタイプによって異なります。一般的なスタンダードルームには1つのトイレがございますが、スイートルームなどの広めのお部屋では2つ以上のトイレがある場合もございます。",
+                "timestamp": "2025-07-15T02:08:47.811Z",
+                "track": "outbound_track"
+              },
+              {
+                "id": "GT27e13a0070be842e4935510b7467c01b",
+                "participantSid": "unknown",
+                "sequenceId": "13",
+                "text": "もし 具体的な部屋のタイプを教えていただければ、より詳しい情報をお伝えできますので、お気軽にお知らせください。",
+                "timestamp": "2025-07-15T02:08:56.690Z",
+                "track": "outbound_track"
+              },
+              {
+                "id": "GT27e13a0070be842e4935510b7467c01b",
+                "participantSid": "unknown",
+                "sequenceId": "14",
+                "text": "スタンダードルームです。",
+                "timestamp": "2025-07-15T02:08:59.244Z",
+                "track": "outbound_track"
+              },
+              {
+                "id": "GT27e13a0070be842e4935510b7467c01b",
+                "participantSid": "unknown",
+                "sequenceId": "15",
+                "text": "スタンダードルームには 通常 1つのトイレがございます。トイレは清潔に保たれており、快適にご利用いただけます。他に何かご質問があれば お気軽にお尋ねください。",
+                "timestamp": "2025-07-15T02:09:18.073Z",
+                "track": "outbound_track"
+              },
+              {
+                "id": "GT27e13a0070be842e4935510b7467c01b",
+                "participantSid": "unknown",
+                "sequenceId": "16",
+                "text": "受付は何時までですか？",
+                "timestamp": "2025-07-15T02:09:22.191Z",
+                "track": "outbound_track"
+              },
+              {
+                "id": "GT27e13a0070be842e4935510b7467c01b",
+                "participantSid": "unknown",
+                "sequenceId": "17",
+                "text": "チェックインは通常15 時から となっております。チェックアウトは11時までにお願いしております。もし早めのチェックインや遅めのチェックアウトをご希望の場合は、事前にご相談いただければ 調整できる場合もございますのでお気軽にお知らせください。",
+                "timestamp": "2025-07-15T02:09:46.527Z",
+                "track": "outbound_track"
+              }
+            ]
+          },
+          "dateCreated": "2025-07-15T02:07:02.000Z"
+        },
+        {
+          "uniqueName": "transcription_CA7f12c528ebea2af1fa9471b1cbc296a8",
+          "data": {
+            "conferenceSid": "CA7f12c528ebea2af1fa9471b1cbc296a8",
+            "lastUpdated": "2025-07-15T05:05:41.462Z",
+            "startTime": "2025-07-15T05:04:42.582Z",
+            "transcripts": [
+              {
+                "id": "GT86ff80f044395b26f01d460d9a5e888a",
+                "participantSid": "unknown",
+                "sequenceId": "2",
+                "text": "多分 音は聞けてないと思うんですけど。",
+                "timestamp": "2025-07-15T05:04:42.511Z",
+                "track": "inbound_track"
+              },
+              {
+                "id": "GT86ff80f044395b26f01d460d9a5e888a",
+                "participantSid": "unknown",
+                "sequenceId": "3",
+                "text": "がこう。文字起こし されてます。",
+                "timestamp": "2025-07-15T05:05:18.061Z",
+                "track": "outbound_track"
+              },
+              {
+                "id": "GT86ff80f044395b26f01d460d9a5e888a",
+                "participantSid": "unknown",
+                "sequenceId": "4",
+                "text": " いう解除してまこうやって食べれば えっと 乗り越しがされていきます。",
+                "timestamp": "2025-07-15T05:05:41.410Z",
+                "track": "inbound_track"
+              }
+            ]
+          },
+          "dateCreated": "2025-07-15T05:04:42.000Z"
+        },
+        {
+          "uniqueName": "transcription_CA99d3dfc7e196161933a0fc7c9ab86191",
+          "data": {
+            "conferenceSid": "CA99d3dfc7e196161933a0fc7c9ab86191",
+            "lastUpdated": "2025-07-15T05:07:31.289Z",
+            "startTime": "2025-07-15T05:07:31.289Z",
+            "transcripts": [
+              {
+                "id": "GTf8997cd779bfdc2e866c9df4d8f81487",
+                "participantSid": "unknown",
+                "sequenceId": "2",
+                "text": "お答えします。ご質問をどうぞ。",
+                "timestamp": "2025-07-15T05:07:31.251Z",
+                "track": "outbound_track"
+              }
+            ]
+          },
+          "dateCreated": "2025-07-15T05:07:31.000Z"
+        }
+      ]
+    }
+  ]
+}

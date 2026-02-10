@@ -1,0 +1,22 @@
+[
+  {
+    "content": "ビルドエラーの確認",
+    "status": "completed",
+    "activeForm": "ビルドエラーを確認中"
+  },
+  {
+    "content": "ターゲット設定の確認",
+    "status": "completed",
+    "activeForm": "ターゲット設定を確認中"
+  },
+  {
+    "content": "シンプルなテストアプリで動作確認",
+    "status": "completed",
+    "activeForm": "シンプルなテストアプリで動作確認中"
+  },
+  {
+    "content": "Derived Dataを削除してクリーンビルド",
+    "status": "in_progress",
+    "activeForm": "Derived Dataを削除してクリーンビルド中"
+  }
+]

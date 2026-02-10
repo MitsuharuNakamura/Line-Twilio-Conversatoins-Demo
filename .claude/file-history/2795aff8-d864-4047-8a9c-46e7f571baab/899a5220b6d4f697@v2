@@ -1,0 +1,68 @@
+import SwiftUI
+
+struct SIPCallView: View {
+    @State private var sipAddress: String = ""
+    @State private var showError: Bool = false
+    @State private var errorMessage: String = ""
+
+    var body: some View {
+        NavigationView {
+            VStack(spacing: 24) {
+                Spacer()
+
+                VStack(spacing: 16) {
+                    Image(systemName: "phone.badge.waveform.fill")
+                        .font(.system(size: 80))
+                        .foregroundColor(.blue)
+
+                    Text("SIP通話")
+                        .font(.title)
+                        .fontWeight(.bold)
+
+                    Text("SIPアドレスを入力してください")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+
+                    TextField("sip:user@domain.com", text: $sipAddress)
+                        .textFieldStyle(.roundedBorder)
+                        .keyboardType(.emailAddress)
+                        .textContentType(.emailAddress)
+                        .autocapitalization(.none)
+                        .padding(.horizontal, 32)
+                }
+
+                Spacer()
+
+                // Call Button
+                Button(action: makeCall) {
+                    HStack {
+                        Image(systemName: "phone.fill")
+                        Text("発信")
+                    }
+                    .font(.headline)
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(sipAddress.isEmpty ? Color.gray : Color.blue)
+                    .cornerRadius(12)
+                }
+                .disabled(sipAddress.isEmpty)
+                .padding(.horizontal, 32)
+                .padding(.bottom, 32)
+            }
+            .navigationTitle("SIP")
+            .alert("エラー", isPresented: $showError) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(errorMessage)
+            }
+        }
+    }
+
+    private func makeCall() {
+        // TODO: Implement SIP calling logic
+        print("Making SIP call to: \(sipAddress)")
+        errorMessage = "SIP通話機能は準備中です"
+        showError = true
+    }
+}

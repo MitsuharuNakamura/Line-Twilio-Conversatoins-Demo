@@ -1,0 +1,14 @@
+[
+  {
+    "content": "Twilioのメディアストリーム形式を理解し、音声入力終了タイミングを検出",
+    "status": "completed",
+    "priority": "high",
+    "id": "1"
+  },
+  {
+    "content": "日本語音声終了から英語音声開始までのレイテンシ計測",
+    "status": "completed",
+    "priority": "high",
+    "id": "2"
+  }
+]

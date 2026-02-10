@@ -1,0 +1,21 @@
+from fastapi import FastAPI
+from typing import Optional
+
+app = FastAPI()
+
+@app.get('/customer')
+def get_customer(id: Optional[str] = '1'):
+    # クエリパラメータからidを取得（使用しないがエンドポイントの仕様として）
+    # 常に同じレスポンスを返す
+    return {
+        'id': 1,
+        'name': '田中悟',
+        'phone': '090-1111-1111'
+    }
+
+@app.get('/store-status')
+def get_store_status():
+    # 常に同じレスポンスを返す
+    return {
+        'status': 'closed'
+    }

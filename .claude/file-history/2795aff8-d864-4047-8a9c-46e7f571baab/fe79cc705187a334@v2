@@ -1,0 +1,126 @@
+import Foundation
+import SwiftUI
+import CallKit
+
+class CallManager: ObservableObject {
+    static let shared = CallManager()
+
+    @Published var isCallActive: Bool = false
+    @Published var callState: CallState = .idle
+    @Published var currentCallUUID: UUID?
+    @Published var remoteParticipant: String = ""
+    @Published var callDuration: TimeInterval = 0
+    @Published var isMuted: Bool = false
+    @Published var isOnHold: Bool = false
+
+    private var callTimer: Timer?
+
+    private init() {}
+
+    // MARK: - Outgoing Call
+
+    func startOutgoingCall(to phoneNumber: String) {
+        let uuid = UUID()
+        currentCallUUID = uuid
+        remoteParticipant = phoneNumber
+        callState = .connecting
+
+        CallKitService.shared.startOutgoingCall(to: phoneNumber, uuid: uuid)
+    }
+
+    // MARK: - Incoming Call
+
+    func answerCall(uuid: UUID) {
+        currentCallUUID = uuid
+        callState = .connecting
+        // The actual answer logic is handled in TwilioService
+    }
+
+    // MARK: - Call State Management
+
+    func callConnected() {
+        DispatchQueue.main.async {
+            self.callState = .connected
+            self.isCallActive = true
+            self.callDuration = 0
+            self.startCallTimer()
+
+            if let uuid = self.currentCallUUID {
+                CallKitService.shared.setCallConnected(uuid: uuid)
+            }
+        }
+    }
+
+    func endCall() {
+        DispatchQueue.main.async {
+            self.callState = .idle
+            self.isCallActive = false
+            self.stopCallTimer()
+            self.callDuration = 0
+            self.currentCallUUID = nil
+            self.remoteParticipant = ""
+            self.isMuted = false
+            self.isOnHold = false
+        }
+    }
+
+    func toggleMute() {
+        isMuted.toggle()
+        TwilioService.shared.toggleMute()
+
+        if let uuid = currentCallUUID {
+            CallKitService.shared.setMuted(uuid: uuid, muted: isMuted)
+        }
+    }
+
+    func toggleHold() {
+        isOnHold.toggle()
+        TwilioService.shared.toggleHold()
+
+        if let uuid = currentCallUUID {
+            CallKitService.shared.setHeld(uuid: uuid, onHold: isOnHold)
+        }
+    }
+
+    func hangUp() {
+        if let uuid = currentCallUUID {
+            CallKitService.shared.endCall(uuid: uuid)
+        }
+        TwilioService.shared.endCall()
+        endCall()
+    }
+
+    // MARK: - Timer Management
+
+    private func startCallTimer() {
+        callTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+            guard let self = self else { return }
+            DispatchQueue.main.async {
+                self.callDuration += 1
+            }
+        }
+    }
+
+    private func stopCallTimer() {
+        callTimer?.invalidate()
+        callTimer = nil
+    }
+}
+
+// MARK: - Call State
+
+enum CallState {
+    case idle
+    case connecting
+    case connected
+    case disconnected
+
+    var description: String {
+        switch self {
+        case .idle: return "待機中"
+        case .connecting: return "接続中..."
+        case .connected: return "通話中"
+        case .disconnected: return "切断"
+        }
+    }
+}

@@ -1,0 +1,170 @@
+import SwiftUI
+import Speech
+
+struct ActiveCallView: View {
+    @StateObject private var callManager = CallManager.shared
+    @StateObject private var transcriptionService = TranscriptionService.shared
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        ZStack {
+            // Background gradient
+            LinearGradient(
+                gradient: Gradient(colors: [Color.blue.opacity(0.6), Color.purple.opacity(0.6)]),
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
+
+            VStack(spacing: 32) {
+                // Call Status
+                VStack(spacing: 8) {
+                    Text(callManager.callState.description)
+                        .font(.headline)
+                        .foregroundColor(.white)
+
+                    Text(callManager.remoteParticipant)
+                        .font(.title)
+                        .fontWeight(.bold)
+                        .foregroundColor(.white)
+
+                    Text(formatDuration(callManager.callDuration))
+                        .font(.subheadline)
+                        .foregroundColor(.white.opacity(0.8))
+                }
+                .padding(.top, 60)
+
+                // Transcription Display
+                ScrollViewReader { proxy in
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 12) {
+                            ForEach(transcriptionService.transcriptions) { transcription in
+                                TranscriptionBubble(transcription: transcription)
+                                    .id(transcription.id)
+                            }
+                        }
+                        .padding()
+                    }
+                    .frame(maxHeight: 300)
+                    .background(Color.white.opacity(0.1))
+                    .cornerRadius(16)
+                    .padding(.horizontal)
+                    .onChange(of: transcriptionService.transcriptions.count) { _ in
+                        if let last = transcriptionService.transcriptions.last {
+                            withAnimation {
+                                proxy.scrollTo(last.id, anchor: .bottom)
+                            }
+                        }
+                    }
+                }
+
+                Spacer()
+
+                // Call Controls
+                HStack(spacing: 40) {
+                    // Mute Button
+                    CallControlButton(
+                        icon: callManager.isMuted ? "mic.slash.fill" : "mic.fill",
+                        isActive: callManager.isMuted,
+                        action: callManager.toggleMute
+                    )
+
+                    // Hold Button
+                    CallControlButton(
+                        icon: callManager.isOnHold ? "pause.fill" : "pause",
+                        isActive: callManager.isOnHold,
+                        action: callManager.toggleHold
+                    )
+
+                    // Speaker Button
+                    CallControlButton(
+                        icon: "speaker.wave.3.fill",
+                        isActive: false,
+                        action: { /* TODO: Implement speaker toggle */ }
+                    )
+                }
+                .padding(.horizontal, 40)
+
+                // Hang Up Button
+                Button(action: {
+                    callManager.hangUp()
+                    transcriptionService.stopTranscription()
+                    dismiss()
+                }) {
+                    HStack {
+                        Image(systemName: "phone.down.fill")
+                        Text("終了")
+                    }
+                    .font(.headline)
+                    .foregroundColor(.white)
+                    .frame(width: 200, height: 56)
+                    .background(Color.red)
+                    .cornerRadius(28)
+                }
+                .padding(.bottom, 60)
+            }
+        }
+        .onAppear {
+            transcriptionService.startTranscription()
+        }
+        .onDisappear {
+            transcriptionService.stopTranscription()
+        }
+    }
+
+    private func formatDuration(_ duration: TimeInterval) -> String {
+        let minutes = Int(duration) / 60
+        let seconds = Int(duration) % 60
+        return String(format: "%02d:%02d", minutes, seconds)
+    }
+}
+
+struct CallControlButton: View {
+    let icon: String
+    let isActive: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: icon)
+                .font(.title2)
+                .foregroundColor(isActive ? .white : .white.opacity(0.8))
+                .frame(width: 60, height: 60)
+                .background(isActive ? Color.blue : Color.white.opacity(0.3))
+                .clipShape(Circle())
+        }
+    }
+}
+
+struct TranscriptionBubble: View {
+    let transcription: Transcription
+
+    var body: some View {
+        HStack {
+            if transcription.speaker == .local {
+                Spacer()
+            }
+
+            VStack(alignment: transcription.speaker == .local ? .trailing : .leading, spacing: 4) {
+                Text(transcription.speaker == .local ? "あなた" : "相手")
+                    .font(.caption2)
+                    .foregroundColor(.white.opacity(0.7))
+
+                Text(transcription.text)
+                    .font(.body)
+                    .foregroundColor(.white)
+                    .padding(12)
+                    .background(
+                        transcription.speaker == .local
+                            ? Color.blue.opacity(0.6)
+                            : Color.gray.opacity(0.4)
+                    )
+                    .cornerRadius(12)
+            }
+
+            if transcription.speaker == .remote {
+                Spacer()
+            }
+        }
+    }
+}

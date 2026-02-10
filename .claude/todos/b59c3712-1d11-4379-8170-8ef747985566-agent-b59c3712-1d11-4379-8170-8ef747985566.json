@@ -1,0 +1,14 @@
+[
+  {
+    "content": "Create README.md file",
+    "status": "completed",
+    "priority": "high",
+    "id": "1"
+  },
+  {
+    "content": "Create .gitignore file",
+    "status": "completed",
+    "priority": "high",
+    "id": "2"
+  }
+]

@@ -1,0 +1,29 @@
+//
+//  ReadHistory.swift
+//  NewsSwipe
+//
+//  Created by Claude on 2026-01-24.
+//
+
+import Foundation
+import SwiftData
+
+@Model
+final class ReadHistory {
+    @Attribute(.unique) var id: UUID
+    var articleId: UUID
+    var action: SwipeAction
+    var timestamp: Date
+
+    init(articleId: UUID, action: SwipeAction, timestamp: Date = Date()) {
+        self.id = UUID()
+        self.articleId = articleId
+        self.action = action
+        self.timestamp = timestamp
+    }
+}
+
+enum SwipeAction: String, Codable {
+    case read
+    case skipped
+}

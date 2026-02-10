@@ -1,0 +1,17 @@
+[
+  {
+    "content": "scripts フォルダを作成",
+    "status": "completed",
+    "id": "1"
+  },
+  {
+    "content": ".env から Cloud Run デプロイコマンドを生成するスクリプトを作成",
+    "status": "completed",
+    "id": "2"
+  },
+  {
+    "content": ".gcloudignore に scripts フォルダを追加",
+    "status": "completed",
+    "id": "3"
+  }
+]

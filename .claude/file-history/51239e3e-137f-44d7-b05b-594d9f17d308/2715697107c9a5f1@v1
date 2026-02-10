@@ -1,0 +1,45 @@
+import Foundation
+import AVFoundation
+
+class VideoManager: ObservableObject {
+    @Published var videos: [Video] = []
+
+    init() {
+        loadVideos()
+    }
+
+    func loadVideos() {
+        guard let videosURL = Bundle.main.url(forResource: "videos", withExtension: nil) else {
+            print("Videos directory not found")
+            return
+        }
+
+        do {
+            let fileURLs = try FileManager.default.contentsOfDirectory(
+                at: videosURL,
+                includingPropertiesForKeys: nil,
+                options: [.skipsHiddenFiles]
+            )
+
+            let videoExtensions = ["mp4", "mov", "m4v", "avi"]
+            let videoFiles = fileURLs.filter { url in
+                videoExtensions.contains(url.pathExtension.lowercased())
+            }
+
+            videos = videoFiles.map { url in
+                let filename = url.lastPathComponent
+                let title = url.deletingPathExtension().lastPathComponent
+                    .replacingOccurrences(of: "_", with: " ")
+                    .replacingOccurrences(of: "-", with: " ")
+                return Video(filename: filename, title: title)
+            }.sorted { $0.title < $1.title }
+
+        } catch {
+            print("Error loading videos: \(error)")
+        }
+    }
+
+    func getVideoURL(for video: Video) -> URL? {
+        return Bundle.main.url(forResource: "videos/\(video.filename.replacingOccurrences(of: ".\(video.filename.split(separator: ".").last ?? "")", with: ""))", withExtension: String(video.filename.split(separator: ".").last ?? ""))
+    }
+}

@@ -1,0 +1,38 @@
+[
+  {
+    "content": "プロジェクトの依存関係とTypeScript設定の確認",
+    "status": "completed",
+    "priority": "high",
+    "id": "1"
+  },
+  {
+    "content": "TypeScriptの依存関係をインストール",
+    "status": "completed",
+    "priority": "high",
+    "id": "2"
+  },
+  {
+    "content": "tsconfig.jsonの作成",
+    "status": "completed",
+    "priority": "high",
+    "id": "3"
+  },
+  {
+    "content": "server.jsをserver.tsに変換",
+    "status": "completed",
+    "priority": "high",
+    "id": "4"
+  },
+  {
+    "content": "package.jsonのスクリプトを更新",
+    "status": "completed",
+    "priority": "medium",
+    "id": "5"
+  },
+  {
+    "content": "型定義の追加と型安全性の確保",
+    "status": "completed",
+    "priority": "medium",
+    "id": "6"
+  }
+]

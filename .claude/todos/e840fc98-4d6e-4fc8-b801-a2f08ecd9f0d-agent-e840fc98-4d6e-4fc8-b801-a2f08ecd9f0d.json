@@ -1,0 +1,26 @@
+[
+  {
+    "content": "Check OpenAI API response and debug empty response issue",
+    "status": "completed",
+    "priority": "high",
+    "id": "1"
+  },
+  {
+    "content": "Verify environment variables and API key",
+    "status": "completed",
+    "priority": "high",
+    "id": "2"
+  },
+  {
+    "content": "Check TwiML ConversationRelay audio configuration",
+    "status": "pending",
+    "priority": "medium",
+    "id": "3"
+  },
+  {
+    "content": "Add error handling and logging for OpenAI API calls",
+    "status": "completed",
+    "priority": "high",
+    "id": "4"
+  }
+]

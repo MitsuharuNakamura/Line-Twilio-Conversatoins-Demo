@@ -1,0 +1,130 @@
+import SwiftUI
+
+struct VoiceCallView: View {
+    @StateObject private var twilioService = TwilioService.shared
+    @StateObject private var callManager = CallManager.shared
+    @State private var phoneNumber: String = ""
+    @State private var showError: Bool = false
+    @State private var errorMessage: String = ""
+
+    var body: some View {
+        NavigationView {
+            VStack(spacing: 24) {
+                // Registration Status
+                HStack {
+                    Circle()
+                        .fill(twilioService.isRegistered ? Color.green : Color.red)
+                        .frame(width: 12, height: 12)
+                    Text(twilioService.isRegistered ? "登録済み" : "未登録")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                }
+                .padding()
+
+                Spacer()
+
+                // Phone Number Input
+                VStack(spacing: 16) {
+                    Text("Twilio Voice通話")
+                        .font(.title)
+                        .fontWeight(.bold)
+
+                    Text("電話番号を入力してください")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+
+                    TextField("電話番号", text: $phoneNumber)
+                        .textFieldStyle(.roundedBorder)
+                        .keyboardType(.phonePad)
+                        .padding(.horizontal, 32)
+                        .textContentType(.telephoneNumber)
+
+                    // Dialpad
+                    DialpadView(phoneNumber: $phoneNumber)
+                        .padding(.horizontal)
+                }
+
+                Spacer()
+
+                // Call Button
+                Button(action: makeCall) {
+                    HStack {
+                        Image(systemName: "phone.fill")
+                        Text("発信")
+                    }
+                    .font(.headline)
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(phoneNumber.isEmpty ? Color.gray : Color.green)
+                    .cornerRadius(12)
+                }
+                .disabled(phoneNumber.isEmpty || !twilioService.isRegistered)
+                .padding(.horizontal, 32)
+                .padding(.bottom, 32)
+            }
+            .navigationTitle("Voice")
+            .alert("エラー", isPresented: $showError) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(errorMessage)
+            }
+        }
+    }
+
+    private func makeCall() {
+        twilioService.makeCall(to: phoneNumber) { result in
+            switch result {
+            case .success:
+                phoneNumber = ""
+            case .failure(let error):
+                errorMessage = error.localizedDescription
+                showError = true
+            }
+        }
+    }
+}
+
+struct DialpadView: View {
+    @Binding var phoneNumber: String
+
+    let buttons: [[String]] = [
+        ["1", "2", "3"],
+        ["4", "5", "6"],
+        ["7", "8", "9"],
+        ["*", "0", "#"]
+    ]
+
+    var body: some View {
+        VStack(spacing: 16) {
+            ForEach(buttons, id: \.self) { row in
+                HStack(spacing: 16) {
+                    ForEach(row, id: \.self) { button in
+                        Button(action: {
+                            phoneNumber += button
+                        }) {
+                            Text(button)
+                                .font(.title)
+                                .frame(width: 70, height: 70)
+                                .background(Color.secondary.opacity(0.2))
+                                .cornerRadius(35)
+                        }
+                    }
+                }
+            }
+
+            // Delete button
+            Button(action: {
+                if !phoneNumber.isEmpty {
+                    phoneNumber.removeLast()
+                }
+            }) {
+                Image(systemName: "delete.left")
+                    .font(.title2)
+                    .frame(width: 70, height: 70)
+                    .background(Color.secondary.opacity(0.2))
+                    .cornerRadius(35)
+            }
+        }
+    }
+}

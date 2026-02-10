@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "entries": [
+    {
+      "sessionId": "bf3781cb-73d7-40db-af7f-d4a68fd86063",
+      "fullPath": "/Users/mitsuharunakamura/.claude/projects/-Users-mitsuharunakamura-Documents-Projects-Twilio-Demos-task-management-tool/bf3781cb-73d7-40db-af7f-d4a68fd86063.jsonl",
+      "fileMtime": 1770169894146,
+      "firstPrompt": "# タスク管理アプリ実装プロンプト  ## 概要 個人用のタスク管理アプリを作成してください。Trelloライクなカンバンボードをメインに、日々の作業ログを記録して振り返れる機能を持ちます。  ## 技術スタック - **フレームワーク**: Next.js 14+ (App Router) - **データストア**: Vercel KV - **認証**: シンプルなパスワード認証（環境変数 +…",
+      "messageCount": 4,
+      "created": "2026-02-04T01:51:05.360Z",
+      "modified": "2026-02-04T01:51:34.134Z",
+      "gitBranch": "",
+      "projectPath": "/Users/mitsuharunakamura/Documents/Projects/Twilio_Demos/task-management-tool",
+      "isSidechain": false
+    },
+    {
+      "sessionId": "65511aaa-f1e0-44b5-b36c-5e5a875c5d3c",
+      "fullPath": "/Users/mitsuharunakamura/.claude/projects/-Users-mitsuharunakamura-Documents-Projects-Twilio-Demos-task-management-tool/65511aaa-f1e0-44b5-b36c-5e5a875c5d3c.jsonl",
+      "fileMtime": 1770201960305,
+      "firstPrompt": "作業記録を入れるときにデフォルトは現在時刻でいいんだけど、できれば選択できるようにして欲しい。",
+      "messageCount": 50,
+      "created": "2026-02-04T03:24:00.707Z",
+      "modified": "2026-02-04T10:46:00.294Z",
+      "gitBranch": "",
+      "projectPath": "/Users/mitsuharunakamura/Documents/Projects/Twilio_Demos/task-management-tool",
+      "isSidechain": false
+    }
+  ],
+  "originalPath": "/Users/mitsuharunakamura/Documents/Projects/Twilio_Demos/task-management-tool"
+}

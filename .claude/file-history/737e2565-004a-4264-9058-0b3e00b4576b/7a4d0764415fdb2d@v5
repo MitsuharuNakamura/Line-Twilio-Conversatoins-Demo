@@ -1,0 +1,468 @@
+/**
+ * United Arrows Demo - Voice Call Application
+ *
+ * This application enables browser-based voice calls using Twilio Voice SDK v2
+ * and integrates with OpenAI Realtime API for AI-powered customer support.
+ *
+ * @version 1.0.0
+ */
+
+'use strict';
+
+// ============================================
+// Constants & Configuration
+// ============================================
+const CONFIG = {
+  API_ENDPOINTS: {
+    TOKEN: '/api/token'
+  },
+  TWILIO: {
+    LOG_LEVEL: 1,
+    CODEC_PREFERENCES: ['opus', 'pcmu']
+  },
+  VALIDATION: {
+    EMAIL_PATTERN: /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  }
+};
+
+const STATUS_TYPES = {
+  INFO: 'info',
+  SUCCESS: 'success',
+  ERROR: 'error'
+};
+
+const CALL_STATES = {
+  IDLE: 'idle',
+  INITIALIZING: 'initializing',
+  CONNECTING: 'connecting',
+  ACTIVE: 'active',
+  ENDING: 'ending'
+};
+
+// ============================================
+// State Management
+// ============================================
+const appState = {
+  device: null,
+  currentCall: null,
+  callState: CALL_STATES.IDLE,
+  elements: {}
+};
+
+// ============================================
+// DOM Element References
+// ============================================
+const DOM_SELECTORS = {
+  form: '#contactForm',
+  callButton: '#callButton',
+  buttonText: '#buttonText',
+  status: '#status',
+  nameInput: '#name',
+  emailInput: '#email',
+  requirementSelect: '#requirement',
+  nameError: '#name-error',
+  emailError: '#email-error',
+  requirementError: '#requirement-error'
+};
+
+// ============================================
+// Initialization
+// ============================================
+
+/**
+ * Initialize the application when DOM is ready
+ */
+document.addEventListener('DOMContentLoaded', () => {
+  try {
+    // Check if Twilio SDK is loaded
+    if (typeof Twilio === 'undefined') {
+      console.error('Twilio SDK is not loaded');
+      showAlert('エラー: Twilio SDKの読み込みに失敗しました。ページを再読み込みしてください。');
+      return;
+    }
+
+    console.log('Twilio SDK loaded successfully');
+
+    // Initialize DOM elements
+    initializeElements();
+
+    // Setup event listeners
+    setupEventListeners();
+
+    console.log('Application initialized successfully');
+  } catch (error) {
+    console.error('Application initialization failed:', error);
+    showAlert('アプリケーションの初期化に失敗しました。');
+  }
+});
+
+/**
+ * Initialize DOM element references
+ */
+function initializeElements() {
+  for (const [key, selector] of Object.entries(DOM_SELECTORS)) {
+    const element = document.querySelector(selector);
+    if (!element) {
+      throw new Error(`Required element not found: ${selector}`);
+    }
+    appState.elements[key] = element;
+  }
+}
+
+/**
+ * Setup event listeners
+ */
+function setupEventListeners() {
+  appState.elements.form.addEventListener('submit', handleFormSubmit);
+
+  // Add input validation listeners
+  appState.elements.nameInput.addEventListener('blur', () => validateField('name'));
+  appState.elements.emailInput.addEventListener('blur', () => validateField('email'));
+  appState.elements.requirementSelect.addEventListener('change', () => validateField('requirement'));
+
+  // Cleanup on page unload
+  window.addEventListener('beforeunload', cleanup);
+}
+
+// ============================================
+// Twilio Device Management
+// ============================================
+
+/**
+ * Initialize Twilio Device
+ * @returns {Promise<boolean>} Success status
+ */
+async function initializeDevice() {
+  try {
+    updateCallState(CALL_STATES.INITIALIZING);
+
+    const identity = appState.elements.nameInput.value || 'user';
+
+    console.log('Requesting token from server...');
+    const response = await fetch(CONFIG.API_ENDPOINTS.TOKEN, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ identity })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Token request failed: ${response.status} - ${errorText}`);
+    }
+
+    const data = await response.json();
+    console.log('Token received');
+
+    if (!data.token) {
+      throw new Error('Token not found in response');
+    }
+
+    // Create Twilio Device
+    console.log('Creating Twilio Device...');
+    appState.device = new Twilio.Device(data.token, {
+      logLevel: CONFIG.TWILIO.LOG_LEVEL,
+      codecPreferences: CONFIG.TWILIO.CODEC_PREFERENCES
+    });
+
+    // Setup device event handlers
+    setupDeviceEventHandlers();
+
+    console.log('Registering device...');
+    await appState.device.register();
+    console.log('Device registered successfully');
+
+    return true;
+  } catch (error) {
+    console.error('Failed to initialize device:', error);
+    updateStatus(`デバイス初期化失敗: ${error.message}`, STATUS_TYPES.ERROR);
+    updateCallState(CALL_STATES.IDLE);
+    return false;
+  }
+}
+
+/**
+ * Setup Twilio Device event handlers
+ */
+function setupDeviceEventHandlers() {
+  appState.device.on('registered', () => {
+    console.log('Device registered');
+    updateStatus('デバイスが登録されました', STATUS_TYPES.SUCCESS);
+  });
+
+  appState.device.on('error', (error) => {
+    console.error('Device error:', error);
+    updateStatus(`デバイスエラー: ${error.message}`, STATUS_TYPES.ERROR);
+    resetCallButton();
+    updateCallState(CALL_STATES.IDLE);
+  });
+
+  appState.device.on('incoming', (call) => {
+    console.log('Incoming call');
+    appState.currentCall = call;
+    setupCallEventHandlers(call);
+  });
+}
+
+// ============================================
+// Call Management
+// ============================================
+
+/**
+ * Make an outbound call
+ */
+async function makeCall() {
+  try {
+    // Initialize device if not already initialized
+    if (!appState.device) {
+      updateStatus('デバイスを初期化しています...', STATUS_TYPES.INFO);
+      const initialized = await initializeDevice();
+      if (!initialized) {
+        return;
+      }
+    }
+
+    // Prepare call parameters
+    const params = {
+      requirement: appState.elements.requirementSelect.value,
+      name: appState.elements.nameInput.value,
+      email: appState.elements.emailInput.value
+    };
+
+    updateCallState(CALL_STATES.CONNECTING);
+    updateStatus('通話を開始しています...', STATUS_TYPES.INFO);
+    setButtonLoading(true);
+
+    // Make the call
+    appState.currentCall = await appState.device.connect({ params });
+    setupCallEventHandlers(appState.currentCall);
+
+  } catch (error) {
+    console.error('Failed to make call:', error);
+    updateStatus(`通話の開始に失敗しました: ${error.message}`, STATUS_TYPES.ERROR);
+    resetCallButton();
+    updateCallState(CALL_STATES.IDLE);
+  }
+}
+
+/**
+ * Setup call event handlers
+ * @param {Object} call - Twilio Call object
+ */
+function setupCallEventHandlers(call) {
+  call.on('accept', () => {
+    console.log('Call accepted');
+    updateCallState(CALL_STATES.ACTIVE);
+    updateStatus('通話中...', STATUS_TYPES.SUCCESS);
+    appState.elements.buttonText.textContent = '通話を終了';
+    appState.elements.callButton.classList.remove('calling');
+    setButtonLoading(false);
+  });
+
+  call.on('disconnect', () => {
+    console.log('Call disconnected');
+    updateCallState(CALL_STATES.IDLE);
+    updateStatus('通話が終了しました', STATUS_TYPES.INFO);
+    appState.currentCall = null;
+    resetCallButton();
+  });
+
+  call.on('cancel', () => {
+    console.log('Call cancelled');
+    updateCallState(CALL_STATES.IDLE);
+    updateStatus('通話がキャンセルされました', STATUS_TYPES.INFO);
+    appState.currentCall = null;
+    resetCallButton();
+  });
+
+  call.on('reject', () => {
+    console.log('Call rejected');
+    updateCallState(CALL_STATES.IDLE);
+    updateStatus('通話が拒否されました', STATUS_TYPES.ERROR);
+    appState.currentCall = null;
+    resetCallButton();
+  });
+
+  call.on('error', (error) => {
+    console.error('Call error:', error);
+    updateCallState(CALL_STATES.IDLE);
+    updateStatus(`通話エラー: ${error.message}`, STATUS_TYPES.ERROR);
+    appState.currentCall = null;
+    resetCallButton();
+  });
+}
+
+/**
+ * Hang up the current call
+ */
+function hangUp() {
+  if (appState.currentCall) {
+    updateCallState(CALL_STATES.ENDING);
+    appState.currentCall.disconnect();
+  }
+}
+
+// ============================================
+// Form Validation
+// ============================================
+
+/**
+ * Validate a specific form field
+ * @param {string} fieldName - Name of the field to validate
+ * @returns {boolean} Validation result
+ */
+function validateField(fieldName) {
+  const field = appState.elements[`${fieldName}Input`] || appState.elements[`${fieldName}Select`];
+  const errorElement = appState.elements[`${fieldName}Error`];
+
+  if (!field) return true;
+
+  let isValid = true;
+  let errorMessage = '';
+
+  // Check if field is empty
+  if (!field.value.trim()) {
+    isValid = false;
+    errorMessage = 'この項目は必須です';
+  }
+  // Email-specific validation
+  else if (fieldName === 'email' && !CONFIG.VALIDATION.EMAIL_PATTERN.test(field.value)) {
+    isValid = false;
+    errorMessage = '有効なメールアドレスを入力してください';
+  }
+
+  // Update UI
+  field.setAttribute('aria-invalid', !isValid);
+  if (errorElement) {
+    errorElement.textContent = errorMessage;
+  }
+
+  return isValid;
+}
+
+/**
+ * Validate the entire form
+ * @returns {boolean} Validation result
+ */
+function validateForm() {
+  const nameValid = validateField('name');
+  const emailValid = validateField('email');
+  const requirementValid = validateField('requirement');
+
+  return nameValid && emailValid && requirementValid;
+}
+
+// ============================================
+// Event Handlers
+// ============================================
+
+/**
+ * Handle form submission
+ * @param {Event} e - Submit event
+ */
+async function handleFormSubmit(e) {
+  e.preventDefault();
+
+  // Validate form
+  if (!validateForm()) {
+    updateStatus('すべての項目を正しく入力してください', STATUS_TYPES.ERROR);
+    return;
+  }
+
+  // Handle call state
+  if (appState.currentCall && appState.callState === CALL_STATES.ACTIVE) {
+    // If already in call, hang up
+    hangUp();
+  } else if (appState.callState === CALL_STATES.IDLE) {
+    // Otherwise, make a new call
+    await makeCall();
+  }
+}
+
+// ============================================
+// UI Updates
+// ============================================
+
+/**
+ * Update call state
+ * @param {string} newState - New call state
+ */
+function updateCallState(newState) {
+  appState.callState = newState;
+  console.log('Call state changed to:', newState);
+}
+
+/**
+ * Update status message
+ * @param {string} message - Status message
+ * @param {string} type - Status type (info, success, error)
+ */
+function updateStatus(message, type) {
+  const statusDiv = appState.elements.status;
+  statusDiv.textContent = message;
+  statusDiv.className = `status active ${type}`;
+}
+
+/**
+ * Set button loading state
+ * @param {boolean} isLoading - Loading state
+ */
+function setButtonLoading(isLoading) {
+  const button = appState.elements.callButton;
+  button.setAttribute('aria-busy', isLoading);
+  button.disabled = isLoading;
+
+  if (isLoading) {
+    button.classList.add('calling');
+    appState.elements.buttonText.textContent = '接続中...';
+  }
+}
+
+/**
+ * Reset call button to initial state
+ */
+function resetCallButton() {
+  const button = appState.elements.callButton;
+  button.setAttribute('aria-busy', 'false');
+  button.disabled = false;
+  button.classList.remove('calling');
+  appState.elements.buttonText.textContent = '電話で問い合わせる';
+}
+
+/**
+ * Show browser alert
+ * @param {string} message - Alert message
+ */
+function showAlert(message) {
+  alert(message);
+}
+
+// ============================================
+// Cleanup
+// ============================================
+
+/**
+ * Cleanup on page unload
+ */
+function cleanup() {
+  if (appState.currentCall) {
+    appState.currentCall.disconnect();
+  }
+  if (appState.device) {
+    appState.device.destroy();
+  }
+}
+
+// ============================================
+// Exports (for testing purposes)
+// ============================================
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    initializeDevice,
+    makeCall,
+    hangUp,
+    validateField,
+    validateForm
+  };
+}

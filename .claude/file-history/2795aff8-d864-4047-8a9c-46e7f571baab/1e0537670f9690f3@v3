@@ -1,0 +1,240 @@
+# Twilio Unified Phone Client for iOS
+
+Twilio Voice SDK、SIP機能、およびPeer-to-Peer通話機能を統合したiOSネイティブ電話クライアントアプリ。リアルタイム音声文字起こし機能を搭載。
+
+## 機能
+
+- ✅ **Twilio Voice SDK統合** - 高品質なVoIP通話
+- ✅ **CallKit統合** - iOSネイティブの通話UI
+- ✅ **PushKit対応** - VoIPプッシュ通知による着信
+- ✅ **リアルタイム文字起こし** - Apple Speech Recognitionによる通話内容の自動文字起こし
+- 🚧 **SIP通話** - SIPプロトコルによる通話（開発中）
+- 🚧 **WebRTC P2P通話** - ピアツーピア通話（開発中）
+
+## 技術スタック
+
+### iOS アプリ
+- **言語**: Swift 5.9+
+- **UI**: SwiftUI
+- **最小iOS**: iOS 17.0
+- **アーキテクチャ**: MVVM + Clean Architecture
+- **依存関係管理**: Swift Package Manager
+
+### バックエンド
+- **ランタイム**: Node.js 18+
+- **フレームワーク**: Express.js
+- **SDK**: Twilio Node.js SDK
+
+## プロジェクト構造
+
+```
+twilio-multi-phone-app/
+├── TwilioPhoneClient/          # iOS アプリケーション
+│   ├── App/                    # アプリエントリーポイント
+│   │   ├── TwilioPhoneClientApp.swift
+│   │   └── AppDelegate.swift
+│   ├── Core/                   # コアサービスとモデル
+│   │   ├── Services/
+│   │   │   ├── TwilioService.swift
+│   │   │   ├── CallKitService.swift
+│   │   │   └── TranscriptionService.swift
+│   │   └── Models/
+│   │       └── CallManager.swift
+│   ├── Features/               # 機能別モジュール
+│   │   ├── Voice/             # Voice SDK通話
+│   │   ├── SIP/               # SIP通話
+│   │   ├── WebRTC/            # P2P通話
+│   │   └── ActiveCall/        # 通話中画面
+│   ├── Resources/
+│   │   └── Config/
+│   ├── Package.swift
+│   ├── Info.plist
+│   └── TwilioPhoneClient.entitlements
+└── Backend/                    # Node.js バックエンド
+    ├── server.js
+    ├── package.json
+    └── .env.example
+```
+
+## セットアップ
+
+### 前提条件
+
+1. **Twilio アカウント**
+   - [Twilio Console](https://www.twilio.com/console)でアカウント作成
+   - Account SID、Auth Tokenを取得
+
+2. **必要なTwilioリソース**
+   - API Key (Console > Settings > API Keys)
+   - TwiML App (Console > Voice > TwiML Apps)
+   - Push Credential (Console > Voice > Mobile Push Credentials)
+   - 電話番号 (Console > Phone Numbers)
+
+3. **開発環境**
+   - Xcode 15.0+
+   - Node.js 18+
+   - npm または yarn
+   - iOS デバイス（実機、VoIP通知にはシミュレータ不可）
+
+### バックエンドセットアップ
+
+1. **依存関係インストール**
+   ```bash
+   cd Backend
+   npm install
+   ```
+
+2. **環境変数設定**
+   ```bash
+   cp .env.example .env
+   ```
+
+3. **.envファイル編集**
+   ```env
+   TWILIO_ACCOUNT_SID=ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+   TWILIO_AUTH_TOKEN=your_auth_token
+   TWILIO_API_KEY_SID=SKxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+   TWILIO_API_KEY_SECRET=your_api_key_secret
+   TWILIO_TWIML_APP_SID=APxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+   TWILIO_PUSH_CREDENTIAL_SID=CRxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+   TWILIO_PHONE_NUMBER=+1234567890
+   PORT=3000
+   ```
+
+4. **サーバー起動**
+   ```bash
+   npm start
+   # または開発モード
+   npm run dev
+   ```
+
+### iOSアプリセットアップ（CLI）
+
+1. **Team IDの取得（初回のみ）**
+   ```bash
+   ./scripts/get-team-id.sh
+   ```
+   または Xcode > Settings > Accounts > Team ID をコピー
+
+2. **セットアップスクリプトの実行**
+   ```bash
+   cd TwilioPhoneClient
+   ./setup.sh
+   ```
+
+   スクリプトが以下を自動設定:
+   - ✅ Development Team ID
+   - ✅ Bundle Identifier
+   - ✅ Capabilities（Push Notifications、Background Modes）
+   - ✅ Entitlements（VoIP、App Groups）
+   - ✅ Info.plist（権限設定）
+   - ✅ Xcodeプロジェクト生成
+
+3. **プロジェクトを開く**
+   ```bash
+   open TwilioPhoneClient.xcodeproj
+   ```
+
+4. **ビルド & 実行**
+   - 実機を接続
+   - Xcodeで実行 (⌘R)
+
+⚠️ **注意**: VoIP通知は実機でのみ動作します（シミュレータ不可）
+
+<details>
+<summary>手動セットアップ方法（setup.shを使わない場合）</summary>
+
+1. `project.yml`を編集してTeam IDを設定
+2. `xcodegen generate`を実行
+3. Xcodeで開いてビルド
+
+詳細は`TwilioPhoneClient/README.md`を参照
+</details>
+
+## 使い方
+
+### Voice通話
+
+1. アプリを起動し、「Voice」タブを選択
+2. 電話番号を入力（+81または+1形式）
+3. 「発信」ボタンをタップ
+4. 通話が開始され、リアルタイム文字起こしが表示されます
+
+### 着信
+
+1. バックグラウンドまたはアプリ終了時でも着信を受信
+2. CallKitの着信画面が表示
+3. 「応答」で通話開始
+
+### 通話中の機能
+
+- **ミュート**: マイクをオフ/オン
+- **保留**: 通話を保留
+- **スピーカー**: スピーカーフォンに切り替え
+- **文字起こし**: リアルタイムで音声を文字化
+
+## API エンドポイント
+
+### バックエンドサーバー
+
+| エンドポイント | メソッド | 説明 |
+|--------------|---------|------|
+| `/token/voice` | POST | Voice SDK用Access Token取得 |
+| `/token/sip` | POST | SIP用Access Token取得 |
+| `/twiml/outgoing` | POST | 発信用TwiML応答 |
+| `/twiml/incoming` | POST | 着信用TwiML応答 |
+| `/phone-numbers` | GET | 保有電話番号一覧 |
+| `/call/outgoing` | POST | サーバー主導の発信 |
+| `/call/:callSid` | GET | 通話ステータス取得 |
+
+## トラブルシューティング
+
+### VoIPプッシュ通知が届かない
+
+1. Push Credentialが正しく設定されているか確認
+2. APNs証明書が有効期限内か確認
+3. デバイスがVoIP登録済みか確認（ログで`voipDeviceToken`を確認）
+
+### 音声認識が動作しない
+
+1. Info.plistに`NSSpeechRecognitionUsageDescription`が設定されているか確認
+2. アプリ設定で音声認識の権限が許可されているか確認
+3. iOS 17.0以上のデバイスを使用しているか確認
+
+### 通話が接続できない
+
+1. バックエンドサーバーが起動しているか確認
+2. `.env`ファイルの設定が正しいか確認
+3. TwiML AppのVoice URLが正しく設定されているか確認
+4. ネットワーク接続を確認
+
+## 開発ロードマップ
+
+### Phase 1: 基盤構築 ✅
+- [x] Xcodeプロジェクト作成とSPM設定
+- [x] CallKit統合
+- [x] PushKit設定
+- [x] バックエンドサーバー構築
+
+### Phase 2: SIP統合 🚧
+- [ ] SIP認証実装
+- [ ] SIPエンドポイント設定
+- [ ] SIP通話UI実装
+
+### Phase 3: WebRTC P2P 🚧
+- [ ] シグナリングサーバー構築
+- [ ] WebRTC接続実装
+- [ ] P2P通話UI実装
+
+### Phase 4: 文字起こし機能強化 🚧
+- [ ] 話者識別の精度向上
+- [ ] 文字起こし履歴保存
+- [ ] 多言語対応
+
+## ライセンス
+
+MIT License
+
+## サポート
+
+問題や質問がある場合は、Issueを作成してください。

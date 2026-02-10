@@ -1,0 +1,46 @@
+#!/bin/bash
+
+# United Arrows Demo - Stop Script
+# Stops the server and ngrok
+
+set -e
+
+# Load environment variables for PORT
+if [ -f .env ]; then
+  export $(cat .env | grep -v '^#' | grep 'PORT' | xargs)
+fi
+
+PORT=${PORT:-3000}
+
+echo "🛑 Stopping United Arrows Demo..."
+echo ""
+
+# Step 1: Stop ngrok
+echo "🔍 Checking for ngrok processes..."
+if pgrep -x "ngrok" > /dev/null; then
+  echo "🛑 Stopping ngrok..."
+  pkill -x "ngrok" || true
+  echo "✅ ngrok stopped"
+else
+  echo "ℹ️  No ngrok processes running"
+fi
+
+# Step 2: Stop server
+echo "🔍 Checking for server processes on port $PORT..."
+if lsof -ti:$PORT > /dev/null 2>&1; then
+  echo "🛑 Stopping server on port $PORT..."
+  lsof -ti:$PORT | xargs kill -9 || true
+  echo "✅ Server stopped"
+else
+  echo "ℹ️  No server processes running on port $PORT"
+fi
+
+# Step 3: Cleanup
+echo "🧹 Cleaning up..."
+if [ -f ngrok.log ]; then
+  rm ngrok.log
+  echo "✅ Removed ngrok.log"
+fi
+
+echo ""
+echo "✅ All processes stopped successfully"

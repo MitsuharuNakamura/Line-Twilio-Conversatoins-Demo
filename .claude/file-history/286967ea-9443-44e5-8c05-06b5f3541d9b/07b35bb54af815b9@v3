@@ -1,0 +1,158 @@
+import SwiftUI
+
+struct ContentView: View {
+    @StateObject private var translationViewModel = TranslationViewModel()
+    @Environment(\.horizontalSizeClass) var horizontalSizeClass
+    @Environment(\.verticalSizeClass) var verticalSizeClass
+
+    // デバイスの向きを判定
+    var isLandscape: Bool {
+        horizontalSizeClass == .regular || verticalSizeClass == .compact
+    }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            // Header
+            Text("リアルタイム音声翻訳")
+                .font(.title2)
+                .fontWeight(.bold)
+                .padding()
+
+            // Translation Display Area
+            if isLandscape {
+                // 横向き: 横並びレイアウト
+                HStack(spacing: 12) {
+                    TranslationTextView(
+                        title: "English",
+                        text: translationViewModel.recognizedText.isEmpty ? "音声を認識中..." : translationViewModel.recognizedText,
+                        color: .blue
+                    )
+
+                    TranslationTextView(
+                        title: "日本語",
+                        text: translationViewModel.translatedText.isEmpty ? "翻訳を待機中..." : translationViewModel.translatedText,
+                        color: .green
+                    )
+                }
+                .padding(.horizontal)
+            } else {
+                // 縦向き: 縦並びレイアウト
+                VStack(spacing: 12) {
+                    TranslationTextView(
+                        title: "English",
+                        text: translationViewModel.recognizedText.isEmpty ? "音声を認識中..." : translationViewModel.recognizedText,
+                        color: .blue
+                    )
+
+                    TranslationTextView(
+                        title: "日本語",
+                        text: translationViewModel.translatedText.isEmpty ? "翻訳を待機中..." : translationViewModel.translatedText,
+                        color: .green
+                    )
+                }
+                .padding(.horizontal)
+            }
+
+            // Translation History
+            if !translationViewModel.history.isEmpty {
+                Divider()
+                    .padding(.vertical, 8)
+
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("翻訳履歴")
+                            .font(.headline)
+                            .padding(.bottom, 4)
+
+                        ForEach(translationViewModel.history) { item in
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(item.originalText)
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                Text(item.translatedText)
+                                    .font(.body)
+                                Divider()
+                            }
+                            .padding(.vertical, 4)
+                        }
+                    }
+                    .padding(.horizontal)
+                }
+                .frame(maxHeight: 150)
+            }
+
+            // Control Buttons
+            HStack(spacing: 20) {
+                Button(action: {
+                    if translationViewModel.isRecording {
+                        translationViewModel.stopRecording()
+                    } else {
+                        translationViewModel.startRecording()
+                    }
+                }) {
+                    Image(systemName: translationViewModel.isRecording ? "stop.circle.fill" : "mic.circle.fill")
+                        .font(.system(size: 60))
+                        .foregroundColor(translationViewModel.isRecording ? .red : .blue)
+                }
+
+                Button(action: {
+                    translationViewModel.clearHistory()
+                }) {
+                    Image(systemName: "trash.circle.fill")
+                        .font(.system(size: 40))
+                        .foregroundColor(.gray)
+                }
+            }
+            .padding()
+        }
+        .alert("エラー", isPresented: $translationViewModel.showError) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(translationViewModel.errorMessage)
+        }
+    }
+}
+
+// オートスクロール対応のテキスト表示コンポーネント
+struct TranslationTextView: View {
+    let title: String
+    let text: String
+    let color: Color
+
+    @State private var scrollViewID = UUID()
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(title)
+                .font(.headline)
+                .foregroundColor(color)
+
+            ScrollViewReader { proxy in
+                ScrollView {
+                    VStack(alignment: .leading) {
+                        Text(text)
+                            .font(.body)
+                            .padding()
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .id("bottom")
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .frame(minHeight: 100)
+                .background(color.opacity(0.1))
+                .cornerRadius(10)
+                .onChange(of: text) { oldValue, newValue in
+                    // テキストが更新されたら最下部にスクロール
+                    withAnimation {
+                        proxy.scrollTo("bottom", anchor: .bottom)
+                    }
+                }
+            }
+        }
+        .frame(maxWidth: .infinity)
+    }
+}
+
+#Preview {
+    ContentView()
+}

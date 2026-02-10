@@ -1,0 +1,26 @@
+[
+  {
+    "content": "Update model lists with latest models for each AI provider",
+    "status": "completed",
+    "priority": "high",
+    "id": "1"
+  },
+  {
+    "content": "Create model selection dropdown that updates based on provider",
+    "status": "completed",
+    "priority": "high",
+    "id": "2"
+  },
+  {
+    "content": "Update unified-ai.js default models to latest versions",
+    "status": "completed",
+    "priority": "medium",
+    "id": "3"
+  },
+  {
+    "content": "Test the automatic model selection functionality",
+    "status": "completed",
+    "priority": "low",
+    "id": "4"
+  }
+]

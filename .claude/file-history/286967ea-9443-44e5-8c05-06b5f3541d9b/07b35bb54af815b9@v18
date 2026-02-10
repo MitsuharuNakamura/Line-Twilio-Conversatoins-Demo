@@ -1,0 +1,201 @@
+import SwiftUI
+
+struct ContentView: View {
+    @StateObject private var translationViewModel = TranslationViewModel()
+    @Environment(\.horizontalSizeClass) var horizontalSizeClass
+    @Environment(\.verticalSizeClass) var verticalSizeClass
+
+    // デバイスの向きを判定
+    var isLandscape: Bool {
+        horizontalSizeClass == .regular || verticalSizeClass == .compact
+    }
+
+    var body: some View {
+        ZStack {
+            // グラデーション背景 - 全画面に表示
+            LinearGradient(
+                gradient: Gradient(colors: [
+                    Color(red: 0.1, green: 0.2, blue: 0.45),
+                    Color(red: 0.3, green: 0.5, blue: 0.9)
+                ]),
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
+
+            VStack(spacing: 0) {
+                // Header - Glass Design
+                Text("リアルタイム音声翻訳")
+                    .font(.headline)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.white)
+                    .padding(.vertical, 12)
+                    .frame(maxWidth: .infinity)
+                    .background(.ultraThinMaterial)
+
+                // Translation Display Area
+                if isLandscape {
+                    // 横向き: 横並びレイアウト
+                    HStack(spacing: 8) {
+                        TranslationTextView(
+                            title: "English",
+                            text: translationViewModel.recognizedText.isEmpty ? "音声を認識中..." : translationViewModel.recognizedText,
+                            color: .blue,
+                            height: nil
+                        )
+
+                        TranslationTextView(
+                            title: "日本語",
+                            text: translationViewModel.translatedText.isEmpty ? "翻訳を待機中..." : translationViewModel.translatedText,
+                            color: .green,
+                            height: nil
+                        )
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .frame(maxHeight: .infinity)
+                } else {
+                    // 縦向き: 縦並びレイアウト
+                    VStack(spacing: 8) {
+                        TranslationTextView(
+                            title: "English",
+                            text: translationViewModel.recognizedText.isEmpty ? "音声を認識中..." : translationViewModel.recognizedText,
+                            color: .blue,
+                            height: nil
+                        )
+
+                        TranslationTextView(
+                            title: "日本語",
+                            text: translationViewModel.translatedText.isEmpty ? "翻訳を待機中..." : translationViewModel.translatedText,
+                            color: .green,
+                            height: nil
+                        )
+
+                        // Translation History - Glass Design
+                        if !translationViewModel.history.isEmpty {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("履歴")
+                                    .font(.caption2)
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(.white)
+                                    .padding(.horizontal, 10)
+                                    .padding(.top, 4)
+
+                                ScrollView {
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        ForEach(translationViewModel.history) { item in
+                                            VStack(alignment: .leading, spacing: 1) {
+                                                Text(item.originalText)
+                                                    .font(.system(size: 10))
+                                                    .foregroundColor(.white.opacity(0.7))
+                                                Text(item.translatedText)
+                                                    .font(.caption2)
+                                                    .foregroundColor(.white)
+                                                Divider()
+                                                    .background(Color.white.opacity(0.3))
+                                            }
+                                            .padding(.vertical, 1)
+                                        }
+                                    }
+                                    .padding(.horizontal, 10)
+                                }
+                            }
+                            .frame(height: 100)
+                            .background(.ultraThinMaterial)
+                            .cornerRadius(12)
+                            .padding(.horizontal, 12)
+                        }
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .frame(maxHeight: .infinity)
+                }
+
+                // Control Buttons - Glass Design
+                HStack(spacing: 20) {
+                    Button(action: {
+                        if translationViewModel.isRecording {
+                            translationViewModel.stopRecording()
+                        } else {
+                            translationViewModel.startRecording()
+                        }
+                    }) {
+                        Image(systemName: translationViewModel.isRecording ? "stop.circle.fill" : "mic.circle.fill")
+                            .font(.system(size: 50))
+                            .foregroundColor(translationViewModel.isRecording ? .red : .white)
+                            .shadow(color: .black.opacity(0.3), radius: 4, x: 0, y: 2)
+                    }
+
+                    Button(action: {
+                        translationViewModel.clearHistory()
+                    }) {
+                        Image(systemName: "trash.circle.fill")
+                            .font(.system(size: 35))
+                            .foregroundColor(.white.opacity(0.8))
+                            .shadow(color: .black.opacity(0.3), radius: 4, x: 0, y: 2)
+                    }
+                }
+                .padding(.vertical, 12)
+                .frame(maxWidth: .infinity)
+                .background(.thinMaterial)
+            }
+        }
+        .ignoresSafeArea()
+        .alert("エラー", isPresented: $translationViewModel.showError) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(translationViewModel.errorMessage)
+        }
+    }
+}
+
+// オートスクロール対応のテキスト表示コンポーネント - Glass Design
+struct TranslationTextView: View {
+    let title: String
+    let text: String
+    let color: Color
+    let height: CGFloat?
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(title)
+                .font(.subheadline)
+                .fontWeight(.bold)
+                .foregroundColor(.white)
+                .padding(.horizontal, 12)
+                .padding(.top, 8)
+
+            ScrollViewReader { proxy in
+                ScrollView {
+                    VStack(alignment: .leading) {
+                        Text(text)
+                            .font(.body)
+                            .foregroundColor(.white)
+                            .padding(12)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .id("bottom")
+                    }
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(color.opacity(0.2))
+                .cornerRadius(8)
+                .onChange(of: text) { oldValue, newValue in
+                    // テキストが更新されたら最下部にスクロール
+                    withAnimation(.easeOut(duration: 0.3)) {
+                        proxy.scrollTo("bottom", anchor: .bottom)
+                    }
+                }
+            }
+            .padding(.horizontal, 8)
+            .padding(.bottom, 8)
+        }
+        .frame(maxWidth: .infinity, maxHeight: height != nil ? height : .infinity)
+        .background(.ultraThinMaterial)
+        .cornerRadius(16)
+        .shadow(color: .black.opacity(0.2), radius: 8, x: 0, y: 4)
+    }
+}
+
+#Preview {
+    ContentView()
+}

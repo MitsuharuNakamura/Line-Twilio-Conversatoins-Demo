@@ -1,0 +1,8 @@
+import Foundation
+
+struct TranslationItem: Identifiable {
+    let id = UUID()
+    let originalText: String
+    let translatedText: String
+    let timestamp: Date
+}

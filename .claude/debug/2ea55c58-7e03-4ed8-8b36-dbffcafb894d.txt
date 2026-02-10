@@ -1,0 +1,25 @@
+2026-02-05T07:42:33.166Z [DEBUG] [Query.streamInput] Starting to process input stream
+2026-02-05T07:42:33.167Z [DEBUG] [Query.streamInput] Processing message 1: user
+2026-02-05T07:59:08.877Z [DEBUG] [Query.streamInput] Processing message 2: user
+2026-02-05T08:04:06.720Z [DEBUG] [Query.streamInput] Processing message 3: user
+2026-02-05T08:07:53.043Z [DEBUG] [Query.streamInput] Processing message 4: user
+2026-02-05T08:12:52.367Z [DEBUG] [Query.streamInput] Processing message 5: user
+2026-02-05T08:27:33.259Z [DEBUG] [Query.streamInput] Starting to process input stream
+2026-02-05T08:29:56.141Z [DEBUG] [Query.streamInput] Processing message 1: user
+2026-02-05T10:17:32.126Z [DEBUG] [Query.streamInput] Starting to process input stream
+2026-02-06T01:45:02.657Z [DEBUG] [Query.streamInput] Starting to process input stream
+2026-02-06T01:45:02.682Z [DEBUG] [Query.streamInput] Processing message 1: user
+2026-02-06T08:45:30.593Z [DEBUG] [Query.streamInput] Starting to process input stream
+2026-02-06T08:45:30.593Z [DEBUG] [Query.streamInput] Processing message 1: user
+2026-02-06T09:02:52.643Z [DEBUG] [Query.streamInput] Processing message 2: user
+2026-02-06T09:04:40.618Z [DEBUG] [Query.streamInput] Processing message 3: user
+2026-02-06T09:05:08.138Z [DEBUG] [Query.streamInput] Processing message 4: user
+2026-02-06T09:09:23.380Z [DEBUG] [Query.streamInput] Processing message 5: user
+2026-02-06T09:11:18.960Z [DEBUG] [Query.streamInput] Processing message 6: user
+2026-02-06T09:32:20.371Z [DEBUG] [Query.streamInput] Processing message 7: user
+2026-02-06T09:40:14.806Z [DEBUG] [Query.streamInput] Processing message 8: user
+2026-02-06T09:56:13.809Z [DEBUG] [Query.streamInput] Starting to process input stream
+2026-02-06T09:56:36.016Z [DEBUG] [Query.streamInput] Processing message 1: user
+2026-02-06T10:08:36.503Z [DEBUG] [Query.streamInput] Processing message 2: user
+2026-02-06T10:15:54.287Z [DEBUG] [Query.streamInput] Processing message 3: user
+2026-02-06T10:24:53.967Z [DEBUG] [Query.streamInput] Starting to process input stream

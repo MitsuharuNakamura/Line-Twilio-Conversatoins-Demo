@@ -1,0 +1,71 @@
+//
+//  NewsService.swift
+//  NewsSwipe
+//
+//  Created by Claude on 2026-01-24.
+//
+
+import Foundation
+
+class NewsService {
+    private let newsAPIService: NewsAPIService?
+    private let rssService: RSSService
+
+    init(newsAPIKey: String? = nil) {
+        if let apiKey = newsAPIKey, !apiKey.isEmpty {
+            self.newsAPIService = NewsAPIService(apiKey: apiKey)
+        } else {
+            self.newsAPIService = nil
+        }
+        self.rssService = RSSService()
+    }
+
+    func fetchArticles(for category: Category) async throws -> [Article] {
+        var allArticles: [Article] = []
+        var rssError: Error?
+
+        // Google News RSSから取得
+        do {
+            print("🔄 Fetching from Google News RSS...")
+            let rssArticles = try await rssService.fetchGoogleNewsRSS(category: category)
+            print("✅ RSS fetch successful: \(rssArticles.count) articles")
+            allArticles.append(contentsOf: rssArticles)
+        } catch {
+            print("❌ RSS fetch failed: \(error)")
+            rssError = error
+        }
+
+        // NewsAPIから取得（APIキーが設定されている場合）
+        if let newsAPIService = newsAPIService {
+            do {
+                print("🔄 Fetching from NewsAPI...")
+                let newsAPIArticles = try await newsAPIService.fetchTopHeadlines(category: category)
+                print("✅ NewsAPI fetch successful: \(newsAPIArticles.count) articles")
+                allArticles.append(contentsOf: newsAPIArticles)
+            } catch {
+                print("❌ NewsAPI fetch failed: \(error)")
+            }
+        }
+
+        // 両方失敗した場合はエラーをthrow
+        if allArticles.isEmpty, let error = rssError {
+            throw error
+        }
+
+        // 重複を削除（URLベース）
+        var uniqueArticles: [Article] = []
+        var seenURLs: Set<String> = []
+
+        for article in allArticles {
+            if !seenURLs.contains(article.articleURL) {
+                uniqueArticles.append(article)
+                seenURLs.insert(article.articleURL)
+            }
+        }
+
+        print("📊 Total unique articles: \(uniqueArticles.count)")
+
+        // 日付でソート（新しい順）
+        return uniqueArticles.sorted { $0.publishedDate > $1.publishedDate }
+    }
+}

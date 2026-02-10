@@ -1,0 +1,88 @@
+/**
+ * Media Stream WebSocket Handler
+ *
+ * Handles WebSocket connections for Twilio media streaming.
+ */
+
+const WebSocket = require('ws');
+const { connectToOpenAI } = require('../services/openai');
+
+/**
+ * Setup WebSocket server for media streaming
+ * @param {Object} server - HTTP server instance
+ * @returns {Object} WebSocket server
+ */
+function setupMediaStreamWebSocket(server) {
+  const wss = new WebSocket.Server({ server, path: '/media-stream' });
+
+  wss.on('connection', (ws, req) => {
+    console.log('Client connected to media stream');
+
+    let streamSid = null;
+    let openAiConnection = null;
+    let requirement = '商品について';
+    let customerName = 'お客';
+
+    // Handle messages from Twilio
+    ws.on('message', (message) => {
+      try {
+        const msg = JSON.parse(message);
+
+        switch (msg.event) {
+          case 'start':
+            streamSid = msg.start.streamSid;
+            console.log('Media stream started:', streamSid);
+
+            // Extract custom parameters from start event
+            if (msg.start.customParameters) {
+              requirement = msg.start.customParameters.requirement || '商品について';
+              customerName = msg.start.customParameters.name || 'お客';
+              console.log('Custom parameters - Requirement:', requirement, 'Name:', customerName);
+            }
+
+            // Connect to OpenAI
+            openAiConnection = connectToOpenAI(ws, streamSid, customerName, requirement);
+            break;
+
+          case 'media':
+            // Forward audio to OpenAI
+            if (openAiConnection && openAiConnection.openAiWs &&
+                openAiConnection.openAiWs.readyState === WebSocket.OPEN) {
+              const audioAppend = {
+                type: 'input_audio_buffer.append',
+                audio: msg.media.payload
+              };
+              openAiConnection.openAiWs.send(JSON.stringify(audioAppend));
+            }
+            break;
+
+          case 'stop':
+            console.log('Media stream stopped');
+            if (openAiConnection && openAiConnection.openAiWs) {
+              openAiConnection.openAiWs.close();
+            }
+            break;
+        }
+      } catch (error) {
+        console.error('Error processing Twilio message:', error);
+      }
+    });
+
+    ws.on('close', () => {
+      console.log('Client disconnected');
+      if (openAiConnection && openAiConnection.openAiWs) {
+        openAiConnection.openAiWs.close();
+      }
+    });
+
+    ws.on('error', (error) => {
+      console.error('Twilio WebSocket error:', error);
+    });
+  });
+
+  return wss;
+}
+
+module.exports = {
+  setupMediaStreamWebSocket
+};

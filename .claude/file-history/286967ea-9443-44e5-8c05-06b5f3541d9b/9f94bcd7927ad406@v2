@@ -1,0 +1,123 @@
+# リアルタイム音声翻訳アプリ (iOS)
+
+英語→日本語のリアルタイム音声翻訳モバイルアプリ
+
+## 🚀 特徴
+
+- **リアルタイム音声認識**: 英語の音声を即座にテキスト化
+- **ストリーミング翻訳**: OpenAI APIを使用した高速翻訳
+- **並列表示**: 英語と日本語を同時に表示
+- **部分結果表示**: 音声認識中の暫定テキストをリアルタイム表示
+- **翻訳履歴**: 過去の翻訳を確認可能
+
+## 📋 要件
+
+- iOS 17.0以上
+- Xcode 15.0以上
+- OpenAI APIキー
+
+## 🛠️ セットアップ
+
+### 1. OpenAI APIキーの設定
+
+アプリを実行する前に、OpenAI APIキーを設定する必要があります。
+
+#### 方法1: 環境変数を使用（推奨）
+
+Xcodeのスキームエディタで環境変数を設定:
+
+1. Xcode でプロジェクトを開く
+2. `Product` > `Scheme` > `Edit Scheme...`
+3. `Run` > `Arguments` タブを選択
+4. `Environment Variables` セクションに追加:
+   - Name: `OPENAI_API_KEY`
+   - Value: あなたのAPIキー
+
+#### 方法2: コード内で直接設定（開発用のみ）
+
+`RealtimeTranslation/Services/TranslationService.swift` の `init()` メソッド内で:
+
+```swift
+self.apiKey = "your-api-key-here"
+```
+
+⚠️ **警告**: APIキーをコードに直接記述する場合は、絶対にGitにコミットしないでください！
+
+### 2. プロジェクトのビルドと実行
+
+```bash
+# Xcodeでプロジェクトを開く
+open RealtimeTranslation.xcodeproj
+
+# または、コマンドラインでビルド
+xcodebuild -project RealtimeTranslation.xcodeproj -scheme RealtimeTranslation -destination 'platform=iOS Simulator,name=iPhone 15'
+```
+
+## 📱 使い方
+
+1. アプリを起動
+2. マイクと音声認識の権限を許可
+3. マイクボタンをタップして録音開始
+4. 英語で話すと、リアルタイムで日本語に翻訳されます
+5. 停止ボタンで録音を終了
+6. 翻訳履歴は画面下部に表示されます
+
+## 🏗️ アーキテクチャ
+
+```
+RealtimeTranslation/
+├── RealtimeTranslationApp.swift    # アプリのエントリーポイント
+├── ContentView.swift                # メインUI
+├── Models/
+│   └── TranslationItem.swift       # 翻訳アイテムのデータモデル
+├── ViewModels/
+│   └── TranslationViewModel.swift  # ビジネスロジック
+└── Services/
+    ├── SpeechRecognitionService.swift  # 音声認識サービス
+    └── TranslationService.swift        # OpenAI翻訳サービス
+```
+
+### 主要コンポーネント
+
+- **SpeechRecognitionService**: Apple の Speech Framework を使用した音声認識
+- **TranslationService**: OpenAI API を使用したテキスト翻訳
+- **TranslationViewModel**: UIとサービス間の橋渡し、Combine を使用した状態管理
+
+## 🔧 カスタマイズ
+
+### 翻訳言語の変更
+
+`TranslationViewModel.swift` で言語コードを変更:
+
+```swift
+let translated = try await translationService.translate(text: text, from: "en", to: "ja")
+```
+
+### OpenAI モデルの変更
+
+`TranslationService.swift` でモデルを変更:
+
+```swift
+"model": "gpt-4o-mini"  // または "gpt-4o", "gpt-3.5-turbo" など
+```
+
+## ⚠️ 注意事項
+
+- 音声認識には安定したネットワーク接続が必要です
+- OpenAI APIの使用には料金が発生します
+- マイクと音声認識の権限が必要です
+- 実機でテストする場合、開発者アカウントが必要です
+
+## 🔐 セキュリティ
+
+- APIキーは`.gitignore`で除外されています
+- 本番環境では、APIキーをKeychainに保存することを推奨します
+- サーバーサイドでAPIキーを管理し、アプリからはプロキシ経由でアクセスすることを推奨します
+
+## 📄 ライセンス
+
+MIT License
+
+## 🤝 コントリビューション
+
+プルリクエストを歓迎します！

@@ -1,0 +1,120 @@
+import Foundation
+import Speech
+import AVFoundation
+import Combine
+
+class SpeechRecognitionService: NSObject, ObservableObject {
+    private let speechRecognizer = SFSpeechRecognizer(locale: Locale(identifier: "en-US"))
+    private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
+    private var recognitionTask: SFSpeechRecognitionTask?
+    private let audioEngine = AVAudioEngine()
+
+    private let recognizedTextSubject = PassthroughSubject<String, Never>()
+    private let errorSubject = PassthroughSubject<Error, Never>()
+
+    var recognizedTextPublisher: AnyPublisher<String, Never> {
+        recognizedTextSubject.eraseToAnyPublisher()
+    }
+
+    var errorPublisher: AnyPublisher<Error, Never> {
+        errorSubject.eraseToAnyPublisher()
+    }
+
+    enum SpeechRecognitionError: LocalizedError {
+        case recognizerNotAvailable
+        case audioEngineNotAvailable
+        case recognitionNotAuthorized
+
+        var errorDescription: String? {
+            switch self {
+            case .recognizerNotAvailable:
+                return "音声認識が利用できません"
+            case .audioEngineNotAvailable:
+                return "オーディオエンジンの初期化に失敗しました"
+            case .recognitionNotAuthorized:
+                return "音声認識の許可が必要です"
+            }
+        }
+    }
+
+    override init() {
+        super.init()
+        requestAuthorization()
+    }
+
+    private func requestAuthorization() {
+        SFSpeechRecognizer.requestAuthorization { status in
+            DispatchQueue.main.async {
+                switch status {
+                case .authorized:
+                    print("Speech recognition authorized")
+                case .denied, .restricted, .notDetermined:
+                    self.errorSubject.send(SpeechRecognitionError.recognitionNotAuthorized)
+                @unknown default:
+                    break
+                }
+            }
+        }
+    }
+
+    func startRecording() async throws {
+        // Cancel previous task if exists
+        recognitionTask?.cancel()
+        recognitionTask = nil
+
+        // Configure audio session
+        let audioSession = AVAudioSession.sharedInstance()
+        try audioSession.setCategory(.record, mode: .measurement, options: .duckOthers)
+        try audioSession.setActive(true, options: .notifyOthersOnDeactivation)
+
+        guard let speechRecognizer = speechRecognizer, speechRecognizer.isAvailable else {
+            throw SpeechRecognitionError.recognizerNotAvailable
+        }
+
+        recognitionRequest = SFSpeechAudioBufferRecognitionRequest()
+        guard let recognitionRequest = recognitionRequest else {
+            throw SpeechRecognitionError.audioEngineNotAvailable
+        }
+
+        recognitionRequest.shouldReportPartialResults = true
+
+        // Configure audio engine
+        let inputNode = audioEngine.inputNode
+        let recordingFormat = inputNode.outputFormat(forBus: 0)
+
+        inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) { buffer, _ in
+            recognitionRequest.append(buffer)
+        }
+
+        audioEngine.prepare()
+        try audioEngine.start()
+
+        // Start recognition task
+        recognitionTask = speechRecognizer.recognitionTask(with: recognitionRequest) { [weak self] result, error in
+            guard let self = self else { return }
+
+            if let result = result {
+                let recognizedText = result.bestTranscription.formattedString
+                self.recognizedTextSubject.send(recognizedText)
+            }
+
+            if let error = error {
+                self.errorSubject.send(error)
+                self.stopRecording()
+            }
+
+            if result?.isFinal == true {
+                self.stopRecording()
+            }
+        }
+    }
+
+    func stopRecording() {
+        audioEngine.stop()
+        audioEngine.inputNode.removeTap(onBus: 0)
+        recognitionRequest?.endAudio()
+        recognitionRequest = nil
+        recognitionTask?.cancel()
+        recognitionTask = nil
+    }
+}

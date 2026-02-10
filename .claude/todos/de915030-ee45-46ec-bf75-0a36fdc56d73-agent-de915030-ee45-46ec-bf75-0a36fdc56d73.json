@@ -1,0 +1,57 @@
+[
+  {
+    "content": "プロジェクト構造の設計と基本ファイル作成",
+    "status": "in_progress",
+    "activeForm": "プロジェクト構造の設計と基本ファイル作成中"
+  },
+  {
+    "content": "CMakeLists.txt の作成",
+    "status": "pending",
+    "activeForm": "CMakeLists.txt を作成中"
+  },
+  {
+    "content": "μ-law デコーダーの実装",
+    "status": "pending",
+    "activeForm": "μ-law デコーダーを実装中"
+  },
+  {
+    "content": "リサンプラー（8kHz→16kHz）の実装",
+    "status": "pending",
+    "activeForm": "リサンプラー（8kHz→16kHz）を実装中"
+  },
+  {
+    "content": "音声バッファ管理クラスの実装",
+    "status": "pending",
+    "activeForm": "音声バッファ管理クラスを実装中"
+  },
+  {
+    "content": "whisper.cpp ラッパーの実装",
+    "status": "pending",
+    "activeForm": "whisper.cpp ラッパーを実装中"
+  },
+  {
+    "content": "uWebSockets を使った WebSocket サーバーの実装",
+    "status": "pending",
+    "activeForm": "uWebSockets を使った WebSocket サーバーを実装中"
+  },
+  {
+    "content": "main.cpp の実装",
+    "status": "pending",
+    "activeForm": "main.cpp を実装中"
+  },
+  {
+    "content": "Dockerfile の作成",
+    "status": "pending",
+    "activeForm": "Dockerfile を作成中"
+  },
+  {
+    "content": ".gitmodules の作成（whisper.cpp サブモジュール）",
+    "status": "pending",
+    "activeForm": ".gitmodules を作成中"
+  },
+  {
+    "content": "README.md の作成",
+    "status": "pending",
+    "activeForm": "README.md を作成中"
+  }
+]

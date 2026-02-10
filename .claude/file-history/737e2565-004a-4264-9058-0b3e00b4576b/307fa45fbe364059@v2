@@ -1,0 +1,78 @@
+/**
+ * Twilio Service
+ *
+ * Handles Twilio Access Token generation for Voice SDK.
+ */
+
+const twilio = require('twilio');
+
+/**
+ * Generate Twilio Access Token for Voice SDK
+ * @param {string} identity - User identity (default: 'user')
+ * @returns {Object} Token object with JWT and identity
+ * @throws {Error} If token generation fails
+ */
+function generateAccessToken(identity = 'user') {
+  const AccessToken = twilio.jwt.AccessToken;
+  const VoiceGrant = AccessToken.VoiceGrant;
+
+  const token = new AccessToken(
+    process.env.TWILIO_ACCOUNT_SID,
+    process.env.TWILIO_API_KEY,
+    process.env.TWILIO_API_SECRET,
+    { identity }
+  );
+
+  const voiceGrant = new VoiceGrant({
+    outgoingApplicationSid: process.env.TWILIO_TWIML_APP_SID,
+    incomingAllow: true
+  });
+
+  token.addGrant(voiceGrant);
+
+  return {
+    token: token.toJwt(),
+    identity
+  };
+}
+
+/**
+ * Generate TwiML response for voice calls
+ * @param {string} requirement - Inquiry type
+ * @param {string} name - Customer name
+ * @param {string} host - Request host for WebSocket URL
+ * @returns {string} TwiML XML string
+ */
+function generateTwiML(requirement, name, host) {
+  const VoiceResponse = twilio.twiml.VoiceResponse;
+  const response = new VoiceResponse();
+
+  // Check if requirement is about products
+  if (requirement && requirement.includes('商品')) {
+    // Connect to AI - pass requirement and name as URL parameters
+    const connect = response.connect();
+    const params = new URLSearchParams({
+      requirement: requirement || '商品について',
+      name: name || 'お客'
+    });
+    const url = `wss://${host}/media-stream?${params.toString()}`;
+    connect.stream({ url });
+  } else {
+    // Play guidance message
+    response.say(
+      {
+        voice: 'Google.ja-JP-Neural2-B',
+        language: 'ja-JP'
+      },
+      'お問い合わせありがとうございます。商品に関するお問い合わせは、お問い合わせ種別で「商品について」を選択してください。その他のお問い合わせについては、別途ご連絡させていただきます。'
+    );
+    response.hangup();
+  }
+
+  return response.toString();
+}
+
+module.exports = {
+  generateAccessToken,
+  generateTwiML
+};
