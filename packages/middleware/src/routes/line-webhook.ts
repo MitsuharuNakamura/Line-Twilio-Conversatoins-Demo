@@ -4,13 +4,13 @@
 
 import { Hono } from 'hono';
 import type { LineWebhookRequestBody } from '@line-twilio-chat/shared';
-import { verifyLineSignature } from '../utils/line-signature';
-import { LineClient } from '../services/line';
-import { TwilioClient } from '../services/twilio';
+import { verifyLineSignature } from '../utils/line-signature.js';
+import { LineClient } from '../services/line.js';
+import { TwilioClient } from '../services/twilio.js';
 import {
   handleLineMessageEvent,
   handleLinePostbackEvent,
-} from '../handlers/inbound';
+} from '../handlers/inbound.js';
 
 export interface Env {
   LINE_CHANNEL_ACCESS_TOKEN: string;

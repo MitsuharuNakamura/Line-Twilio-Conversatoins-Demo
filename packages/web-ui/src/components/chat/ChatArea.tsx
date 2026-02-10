@@ -33,6 +33,24 @@ const ChatArea: React.FC<ChatAreaProps> = ({
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const previousScrollHeight = useRef<number>(0);
 
+  // 自動スクロールを実行する関数
+  const scrollToBottom = React.useCallback((behavior: ScrollBehavior = 'smooth') => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior });
+    }
+  }, []);
+
+  // 会話が変更されたら最下部にスクロール（ルームを開いた時）
+  useEffect(() => {
+    if (conversation && messages.length > 0) {
+      // 会話が変更されたら即座に最下部へスクロール
+      scrollToBottom('auto');
+
+      // 画像読み込みを考慮して再スクロール
+      setTimeout(() => scrollToBottom('smooth'), 500);
+    }
+  }, [conversation?.sid, scrollToBottom]); // conversation.sidの変更を監視
+
   // 新しいメッセージが追加されたら最下部にスクロール
   useEffect(() => {
     if (messages.length > 0 && messagesEndRef.current) {
@@ -46,11 +64,24 @@ const ChatArea: React.FC<ChatAreaProps> = ({
           container.scrollHeight - container.scrollTop - container.clientHeight < 100;
 
         if (isOwnMessage || isNearBottom) {
-          messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+          // 初回は即座にスクロール
+          scrollToBottom('auto');
+
+          // 画像やスタンプの読み込みを考慮して、少し遅延してから再スクロール
+          const timeouts = [100, 300, 500, 1000];
+          timeouts.forEach(delay => {
+            setTimeout(() => {
+              const stillNearBottom =
+                container.scrollHeight - container.scrollTop - container.clientHeight < 200;
+              if (stillNearBottom) {
+                scrollToBottom('smooth');
+              }
+            }, delay);
+          });
         }
       }
     }
-  }, [messages, operatorIdentity]);
+  }, [messages, operatorIdentity, scrollToBottom]);
 
   // 過去メッセージ読み込み時のスクロール位置維持
   useEffect(() => {

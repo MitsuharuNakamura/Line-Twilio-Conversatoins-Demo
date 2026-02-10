@@ -3,12 +3,12 @@
  */
 
 import { Hono } from 'hono';
-import { LineClient } from '../services/line';
-import { TwilioClient } from '../services/twilio';
+import { LineClient } from '../services/line.js';
+import { TwilioClient } from '../services/twilio.js';
 import {
   handleConversationsMessageAdded,
   type ConversationsWebhookEvent,
-} from '../handlers/outbound';
+} from '../handlers/outbound.js';
 
 export interface Env {
   LINE_CHANNEL_ACCESS_TOKEN: string;

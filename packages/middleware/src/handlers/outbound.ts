@@ -4,9 +4,9 @@
  */
 
 import type { ConversationAttributes } from '@line-twilio-chat/shared';
-import type { LineClient } from '../services/line';
-import type { TwilioClient } from '../services/twilio';
-import { isLineUserId } from '../services/conversation-manager';
+import type { LineClient } from '../services/line.js';
+import type { TwilioClient } from '../services/twilio.js';
+import { isLineUserId } from '../services/conversation-manager.js';
 
 /**
  * Conversations Webhook イベント

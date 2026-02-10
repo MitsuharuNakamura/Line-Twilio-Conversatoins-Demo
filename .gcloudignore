@@ -1,0 +1,15 @@
+# This file specifies files that are *not* uploaded to Google Cloud
+# using gcloud.
+
+.git
+.gitignore
+node_modules
+.env
+.env.local
+.dev.vars
+.wrangler
+*.log
+.DS_Store
+packages/web-ui
+docs
+README.md

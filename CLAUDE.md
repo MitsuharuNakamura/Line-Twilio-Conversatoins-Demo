@@ -231,6 +231,15 @@ Orchestrator (メイン)
   - 新規作成時: operator-001を自動追加
   - 既存取得時: operator-001が未追加なら自動追加
 
+### Phase 2: メッセージタイプの拡張
+
+#### 1. LINEスタンプ対応
+- ✅ LINEスタンプメッセージの受信処理
+- ✅ スタンプID/パッケージIDの保存
+- ✅ スタンプ画像URLの生成（LINE CDN）
+- ✅ Web UIでスタンプ画像表示
+- ✅ 画像読み込み失敗時のフォールバック表示
+
 ## 重要な実装ノート
 
 ### Twilio Conversations Webhookの形式
@@ -262,6 +271,18 @@ Web UI側でリアルタイムに新しい会話を検出するために、以�
 - 環境変数で設定可能にする
 - 複数オペレーターをサポート
 - 動的なアサイン機能
+
+### LINEスタンプ画像URL
+LINEの公式スタンプ画像はLINE CDNから取得可能:
+```
+https://stickershop.line-scdn.net/stickershop/v1/sticker/{stickerId}/android/sticker.png
+```
+
+**注意点:**
+- スタンプIDとパッケージIDは両方保存すること（将来の拡張のため）
+- 画像読み込み失敗時のフォールバック表示を実装すること
+- カスタムスタンプは異なるURLを使用する可能性がある
+- Next.jsで外部画像を表示する場合、`next.config.ts`の`images.remotePatterns`設定は不要（`<img>`タグを使用しているため）
 
 ## セットアップ手順
 

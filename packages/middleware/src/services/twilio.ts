@@ -51,7 +51,7 @@ export interface CreateMessageParams {
 export class TwilioClient {
   private readonly accountSid: string;
   private readonly authToken: string;
-  private readonly serviceSid: string;
+  public readonly serviceSid: string; // 公開して外部からアクセス可能に
   private readonly baseUrl: string;
   private readonly authHeader: string;
 
@@ -230,5 +230,80 @@ export class TwilioClient {
       console.error('Twilio Add Participant error:', error);
       throw new Error(`Twilio API failed: ${response.status}`);
     }
+  }
+
+  /**
+   * MCS (Media Content Service) にメディアをアップロード
+   * Step 1: Upload media to MCS
+   */
+  async uploadMediaToMCS(
+    contentType: string,
+    mediaData: ArrayBuffer
+  ): Promise<string> {
+    const mcsUrl = `https://mcs.us1.twilio.com/v1/Services/${this.serviceSid}/Media`;
+
+    console.log('MCS Upload URL:', mcsUrl);
+    console.log('Content-Type:', contentType);
+    console.log('Media Data size:', mediaData.byteLength);
+
+    const response = await fetch(mcsUrl, {
+      method: 'POST',
+      headers: {
+        Authorization: this.authHeader,
+        'Content-Type': contentType,
+        'X-Twilio-Webhook-Enabled': 'true',
+      },
+      body: mediaData,
+    });
+
+    console.log('MCS Response status:', response.status);
+
+    if (!response.ok) {
+      const error = await response.text();
+      console.error('MCS Upload Media error:', error);
+      throw new Error(`MCS Media Upload failed: ${response.status}`);
+    }
+
+    const result: any = await response.json();
+    console.log('MCS Response:', JSON.stringify(result));
+    return result.sid; // Media SIDを返す
+  }
+
+  /**
+   * メディア付きメッセージを作成
+   * Step 2: Create message with Media SID
+   */
+  async createMediaMessage(
+    conversationSid: string,
+    mediaSid: string,
+    author: string,
+    body: string,
+    attributes?: string
+  ): Promise<TwilioMessage> {
+    const bodyParams = new URLSearchParams();
+    bodyParams.append('Author', author);
+    bodyParams.append('Body', body);
+    bodyParams.append('MediaSid', mediaSid);
+    if (attributes) bodyParams.append('Attributes', attributes);
+
+    const response = await fetch(
+      `${this.baseUrl}/Conversations/${conversationSid}/Messages`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: this.authHeader,
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: bodyParams.toString(),
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.text();
+      console.error('Twilio Create Media Message error:', error);
+      throw new Error(`Twilio API failed: ${response.status}`);
+    }
+
+    return response.json();
   }
 }

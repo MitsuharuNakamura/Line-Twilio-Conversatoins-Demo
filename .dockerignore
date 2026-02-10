@@ -1,0 +1,16 @@
+node_modules
+.next
+dist
+build
+*.log
+.env
+.env.local
+.dev.vars
+.wrangler
+.git
+.gitignore
+README.md
+docs
+*.md
+.DS_Store
+packages/web-ui

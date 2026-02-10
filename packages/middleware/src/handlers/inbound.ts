@@ -6,11 +6,17 @@
 import type {
   LineMessageEvent,
   LineTextMessage,
+  LineStickerMessage,
+  LineImageMessage,
+  LineVideoMessage,
   LinePostbackEvent,
+  StickerMessageAttributes,
+  ImageMessageAttributes,
+  VideoMessageAttributes,
 } from '@line-twilio-chat/shared';
-import type { LineClient } from '../services/line';
-import type { TwilioClient } from '../services/twilio';
-import { getOrCreateConversation } from '../services/conversation-manager';
+import type { LineClient } from '../services/line.js';
+import type { TwilioClient } from '../services/twilio.js';
+import { getOrCreateConversation } from '../services/conversation-manager.js';
 
 /**
  * LINE メッセージイベントを処理
@@ -47,6 +53,7 @@ export async function handleLineMessageEvent(
 
   // メッセージタイプ別に処理
   console.log('Message type:', event.message.type);
+  console.log('Full message object:', JSON.stringify(event.message));
   switch (event.message.type) {
     case 'text':
       console.log('Handling text message:', (event.message as LineTextMessage).text);
@@ -55,18 +62,26 @@ export async function handleLineMessageEvent(
       break;
 
     case 'sticker':
-      // Phase 2 で実装
-      console.log('Sticker message received (not yet supported)');
+      console.log('Handling sticker message');
+      await handleStickerMessage(event.message, conversation.sid, twilioClient, lineUserId);
+      console.log('Sticker message handled successfully');
       break;
 
     case 'image':
-      // Phase 2 で実装
-      console.log('Image message received (not yet supported)');
+      console.log('Handling image message');
+      try {
+        await handleImageMessage(event.message, conversation.sid, twilioClient, lineClient, lineUserId);
+        console.log('Image message handled successfully');
+      } catch (error) {
+        console.error('Error handling image message:', error);
+        throw error;
+      }
       break;
 
     case 'video':
-      // Phase 2 で実装
-      console.log('Video message received (not yet supported)');
+      console.log('Handling video message');
+      await handleVideoMessage(event.message, conversation.sid, twilioClient, lineClient, lineUserId);
+      console.log('Video message handled successfully');
       break;
 
     case 'audio':
@@ -99,12 +114,128 @@ async function handleTextMessage(
   lineUserId: string
 ): Promise<void> {
   console.log('Creating message in Twilio Conversation...');
+
+  // LINE絵文字情報を含める
+  const attributes: any = { type: 'text' };
+  if (message.emojis && message.emojis.length > 0) {
+    attributes.emojis = message.emojis;
+  }
+
   const result = await twilioClient.createMessage(conversationSid, {
     Author: lineUserId,
     Body: message.text,
-    Attributes: JSON.stringify({ type: 'text' }),
+    Attributes: JSON.stringify(attributes),
   });
   console.log('Message created:', result.sid);
+}
+
+/**
+ * スタンプメッセージを Conversation に追加
+ */
+async function handleStickerMessage(
+  message: LineStickerMessage,
+  conversationSid: string,
+  twilioClient: TwilioClient,
+  lineUserId: string
+): Promise<void> {
+  // LINEスタンプの画像URLを生成
+  // 公式スタンプの場合: https://stickershop.line-scdn.net/stickershop/v1/sticker/{stickerId}/android/sticker.png
+  const stickerUrl = `https://stickershop.line-scdn.net/stickershop/v1/sticker/${message.stickerId}/android/sticker.png`;
+
+  const attrs: StickerMessageAttributes = {
+    type: 'sticker',
+    stickerId: message.stickerId,
+    packageId: message.packageId,
+    stickerUrl,
+  };
+
+  console.log('Creating sticker message in Twilio Conversation...');
+  const result = await twilioClient.createMessage(conversationSid, {
+    Author: lineUserId,
+    Body: `[Sticker: ${message.packageId}/${message.stickerId}]`, // スタンプの情報をbodyに含める
+    Attributes: JSON.stringify(attrs),
+  });
+  console.log('Sticker message created:', result.sid);
+}
+
+/**
+ * 画像メッセージを Conversation に追加
+ */
+async function handleImageMessage(
+  message: LineImageMessage,
+  conversationSid: string,
+  twilioClient: TwilioClient,
+  lineClient: LineClient,
+  lineUserId: string
+): Promise<void> {
+  console.log('Downloading image from LINE...');
+
+  // LINE Content APIから画像データを取得
+  const imageData = await lineClient.getContent(message.id);
+
+  // Step 1: MCSにメディアをアップロード
+  console.log('Uploading image to Twilio MCS...');
+  const mediaSid = await twilioClient.uploadMediaToMCS(
+    'image/jpeg', // LINEは基本的にJPEG形式
+    imageData
+  );
+  console.log('Media uploaded to MCS, Media SID:', mediaSid);
+
+  const attrs: ImageMessageAttributes = {
+    type: 'image',
+    mediaUrl: `https://mcs.us1.twilio.com/v1/Services/${twilioClient.serviceSid}/Media/${mediaSid}`,
+  };
+
+  // Step 2: メディアSIDを使ってメッセージを作成
+  console.log('Creating image message in Twilio Conversation...');
+  const result = await twilioClient.createMediaMessage(
+    conversationSid,
+    mediaSid,
+    lineUserId,
+    '[Image]',
+    JSON.stringify(attrs)
+  );
+  console.log('Image message created:', result.sid);
+}
+
+/**
+ * 動画メッセージを Conversation に追加
+ */
+async function handleVideoMessage(
+  message: LineVideoMessage,
+  conversationSid: string,
+  twilioClient: TwilioClient,
+  lineClient: LineClient,
+  lineUserId: string
+): Promise<void> {
+  console.log('Downloading video from LINE...');
+
+  // LINE Content APIから動画データを取得
+  const videoData = await lineClient.getContent(message.id);
+
+  // Step 1: MCSにメディアをアップロード
+  console.log('Uploading video to Twilio MCS...');
+  const mediaSid = await twilioClient.uploadMediaToMCS(
+    'video/mp4', // LINEは基本的にMP4形式
+    videoData
+  );
+  console.log('Media uploaded to MCS, Media SID:', mediaSid);
+
+  const attrs: VideoMessageAttributes = {
+    type: 'video',
+    mediaUrl: `https://mcs.us1.twilio.com/v1/Services/${twilioClient.serviceSid}/Media/${mediaSid}`,
+  };
+
+  // Step 2: メディアSIDを使ってメッセージを作成
+  console.log('Creating video message in Twilio Conversation...');
+  const result = await twilioClient.createMediaMessage(
+    conversationSid,
+    mediaSid,
+    lineUserId,
+    '[Video]',
+    JSON.stringify(attrs)
+  );
+  console.log('Video message created:', result.sid);
 }
 
 /**

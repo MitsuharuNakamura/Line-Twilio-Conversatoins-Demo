@@ -6,6 +6,20 @@ const nextConfig: NextConfig = {
   experimental: {
     typedRoutes: false,
   },
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'stickershop.line-scdn.net',
+        pathname: '/stickershop/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'sprofile.line-scdn.net',
+        pathname: '/**',
+      },
+    ],
+  },
 };
 
 export default nextConfig;
