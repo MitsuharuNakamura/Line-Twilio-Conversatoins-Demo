@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { useRouter } from 'next/navigation';
 import { useConversations } from '@/hooks/useConversations';
 import { useMessages } from '@/hooks/useMessages';
 import ConversationList from './ConversationList';
@@ -15,6 +16,8 @@ const OPERATOR_IDENTITY = 'operator-001';
  * メインレイアウト - 受信トレイとチャットエリアを配置
  */
 const ChatLayout: React.FC = () => {
+  const router = useRouter();
+
   // Conversations管理
   const {
     conversations,
@@ -33,6 +36,16 @@ const ChatLayout: React.FC = () => {
     loadMoreMessages,
     hasMore,
   } = useMessages(activeConversation);
+
+  // ログアウト処理
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+      router.push('/login');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
 
   // エラーハンドリング
   if (conversationsError) {
@@ -82,8 +95,16 @@ const ChatLayout: React.FC = () => {
           </svg>
           <h1 className="text-xl font-bold">LINE × Twilio Chat</h1>
         </div>
-        <div className="text-sm">
-          オペレーター: <span className="font-semibold">{OPERATOR_IDENTITY}</span>
+        <div className="flex items-center gap-4">
+          <div className="text-sm">
+            オペレーター: <span className="font-semibold">{OPERATOR_IDENTITY}</span>
+          </div>
+          <button
+            onClick={handleLogout}
+            className="text-sm px-3 py-1 bg-white/20 hover:bg-white/30 rounded transition-colors"
+          >
+            ログアウト
+          </button>
         </div>
       </header>
 

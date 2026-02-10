@@ -78,8 +78,14 @@ LINE公式アカウントとTwilio Conversations APIを統合し、独自Web Cha
 │       │   ├── app/
 │       │   │   ├── layout.tsx
 │       │   │   ├── page.tsx      # メインチャット画面
+│       │   │   ├── login/
+│       │   │   │   └── page.tsx  # ログインページ
 │       │   │   └── api/
-│       │   │       └── token/route.ts  # トークンプロキシ
+│       │   │       ├── token/route.ts  # トークンプロキシ
+│       │   │       └── auth/
+│       │   │           ├── login/route.ts   # ログインAPI
+│       │   │           └── logout/route.ts  # ログアウトAPI
+│       │   ├── middleware.ts     # 認証ミドルウェア
 │       │   ├── components/
 │       │   │   ├── chat/
 │       │   │   │   ├── ConversationList.tsx
@@ -143,6 +149,9 @@ TWILIO_API_KEY_SID=SKxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 TWILIO_API_KEY_SECRET=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 TWILIO_ACCOUNT_SID=ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 TWILIO_CONVERSATIONS_SERVICE_SID=ISxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+# 認証用のシークレット（本番環境では強力なランダム文字列を使用）
+AUTH_SECRET=your-secret-key-change-in-production
 ```
 
 ## 開発コマンド
@@ -252,6 +261,12 @@ Orchestrator (メイン)
   - 新規メッセージ受信時に最下部へスクロール
   - 画像/動画/スタンプの読み込み待機（遅延リトライ）
   - 会話切り替え時に最新メッセージへスクロール
+- ✅ オペレーター認証機能
+  - JWT認証（jose library使用）
+  - ログインページ（LINE QRコード表示）
+  - Next.js middlewareによるルート保護
+  - セッション管理（HTTPOnly Cookie）
+  - ログアウト機能
 
 #### 4. ミドルウェア実装
 - ✅ Hono (Cloudflare Workers / Google Cloud Run対応)
@@ -451,13 +466,28 @@ gcloud run deploy line-twilio-chat-middleware \
   --set-env-vars="LINE_CHANNEL_ACCESS_TOKEN=xxx,LINE_CHANNEL_SECRET=xxx,TWILIO_ACCOUNT_SID=xxx,TWILIO_AUTH_TOKEN=xxx,TWILIO_API_KEY_SID=xxx,TWILIO_API_KEY_SECRET=xxx,TWILIO_CONVERSATIONS_SERVICE_SID=xxx"
 ```
 
-### 4. Web UIデプロイ
+### 4. Web UIデプロイ (Vercel)
+
 ```bash
-cd packages/web-ui
-# .env.local を作成 (NEXT_PUBLIC_MIDDLEWARE_URLをCloud Run URLに設定)
-pnpm build
-# Vercelなどにデプロイ
+# プロジェクトルートから実行
+vercel --prod
+
+# 環境変数をVercelに設定
+vercel env add TWILIO_ACCOUNT_SID
+vercel env add TWILIO_API_KEY
+vercel env add TWILIO_API_KEY_SECRET
+vercel env add TWILIO_CONVERSATIONS_SERVICE_SID
+vercel env add NEXT_PUBLIC_MIDDLEWARE_URL
+vercel env add AUTH_SECRET
 ```
+
+**重要**: 環境変数に改行文字が含まれないよう注意すること。Vercelダッシュボードでの手動設定を推奨。
+
+**デフォルト認証情報**:
+- ユーザーID: `twilioroot`
+- パスワード: `twilio123`
+
+**LINE QRコード**: `/packages/web-ui/public/line-qr.png` に配置してデプロイ
 
 ## トラブルシューティング
 
