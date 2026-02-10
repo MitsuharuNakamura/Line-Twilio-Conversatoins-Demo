@@ -1,0 +1,5 @@
+{
+  "buildCommand": "pnpm --filter @line-twilio-chat/web-ui build",
+  "installCommand": "npm install -g pnpm@latest && pnpm install",
+  "outputDirectory": "packages/web-ui/.next"
+}
