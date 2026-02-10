@@ -21,11 +21,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 環境変数チェック
-    const accountSid = process.env.TWILIO_ACCOUNT_SID;
-    const apiKeySid = process.env.TWILIO_API_KEY;
-    const apiKeySecret = process.env.TWILIO_API_KEY_SECRET;
-    const serviceSid = process.env.TWILIO_CONVERSATIONS_SERVICE_SID;
+    // 環境変数チェック（trim to remove any whitespace/newlines)
+    const accountSid = process.env.TWILIO_ACCOUNT_SID?.trim();
+    const apiKeySid = process.env.TWILIO_API_KEY?.trim();
+    const apiKeySecret = process.env.TWILIO_API_KEY_SECRET?.trim();
+    const serviceSid = process.env.TWILIO_CONVERSATIONS_SERVICE_SID?.trim();
 
     if (!accountSid || !apiKeySid || !apiKeySecret || !serviceSid) {
       console.error('Missing Twilio credentials');
