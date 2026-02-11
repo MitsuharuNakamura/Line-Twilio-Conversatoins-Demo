@@ -173,14 +173,31 @@ pnpm --filter middleware build        # TypeScriptコンパイル (dist/生成)
 
 # 型チェック
 pnpm typecheck
+```
 
-# デプロイ
-pnpm --filter web-ui build           # Vercel / その他
+## デプロイ
 
-# Cloud Runデプロイ
-cd packages/middleware
-gcloud builds submit --tag asia-northeast1-docker.pkg.dev/PROJECT_ID/line-twilio-chat/middleware:latest ../..
-gcloud run deploy line-twilio-chat-middleware --image ... --set-env-vars="..."
+**重要**: デプロイ方法の詳細は [`docs/deployment/environment-variables.md`](docs/deployment/environment-variables.md) を参照してください。
+
+### Vercel（Web UI）
+
+```bash
+# プロジェクトルートから
+vercel --prod
+
+# 環境変数はVercelダッシュボードで設定（推奨）
+```
+
+### Google Cloud Run（ミドルウェア - ソースコードデプロイ）
+
+```bash
+# プロジェクトルートから
+gcloud builds submit --config cloudbuild.yaml
+
+# 環境変数を設定
+gcloud run services update line-twilio-chat-middleware \
+  --region asia-northeast1 \
+  --env-vars-file env.yaml
 ```
 
 ## コーディング規約
@@ -215,6 +232,7 @@ gcloud run deploy line-twilio-chat-middleware --image ... --set-env-vars="..."
 | スタンプ・画像等の対応 | `docs/features/message-types.md` |
 | Flex Message等の実装 | `docs/features/line-rich.md` |
 | マルチエージェント開発 | `docs/agents/orchestration.md` |
+| **環境変数とデプロイ** | **`docs/deployment/environment-variables.md`** |
 
 ## マルチエージェント開発
 

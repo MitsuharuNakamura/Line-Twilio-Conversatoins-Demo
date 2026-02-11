@@ -1,15 +1,66 @@
 # This file specifies files that are *not* uploaded to Google Cloud
 # using gcloud.
 
+# Git
 .git
 .gitignore
-node_modules
+.gitattributes
+
+# Node.js
+node_modules/
+npm-debug.log
+yarn-error.log
+pnpm-debug.log
+
+# 環境変数ファイル（セキュリティ上重要）
 .env
-.env.local
+.env.*
+!.env.production
 .dev.vars
-.wrangler
-*.log
+env.yaml
+
+# ビルド成果物（Cloud Buildで再生成するため除外しない）
+# dist/ は含める
+# build/ は含める
+.next/
+out/
+
+# その他のパッケージ（middlewareのみデプロイ）
+packages/web-ui/
+packages/shared/src/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
 .DS_Store
-packages/web-ui
-docs
-README.md
+Thumbs.db
+
+# ログ
+*.log
+logs/
+
+# テストファイル
+*.test.ts
+*.test.js
+*.spec.ts
+*.spec.js
+__tests__/
+coverage/
+
+# ドキュメント
+docs/
+*.md
+!README.md
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+
+# その他
+.vercel/
+.wrangler/
