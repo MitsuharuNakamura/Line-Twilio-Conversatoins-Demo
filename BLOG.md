@@ -1,259 +1,616 @@
-# LINE × Twilio Conversations — 双方向リアルタイムチャット基盤を作った話
+# LINE × Twilio Conversations 連携チャット基盤の作り方
 
-LINE公式アカウントに届いたメッセージを、独自のWeb UIでオペレーターがリアルタイムに返信できるプラットフォームを構築しました。Twilio Conversations APIを会話基盤に据え、LINE Messaging APIとWeb Chat UIを橋渡しする設計です。
+LINE公式アカウントに届いたメッセージを、Twilio Conversationsを会話基盤にして独自Web UIでリアルタイムに返信できるプラットフォームを作りました。テキストだけでなく、スタンプ・画像・動画にも対応しています。
 
-本記事では、実装中に直面した技術的な課題と、その解決策を中心に解説します。
-
----
-
-## 全体アーキテクチャ
-
-```
-LINE User ──→ LINE Webhook ──→ Middleware (Hono) ──→ Twilio Conversations
-                                                           ↕ (Real-time SDK)
-LINE User ←── LINE Messaging API ←── Middleware ←── Web UI (Next.js 15)
-```
-
-| コンポーネント | 技術 | デプロイ先 |
-|---|---|---|
-| ミドルウェア | Hono (Node.js) | Google Cloud Run |
-| Web Chat UI | Next.js 15 (App Router) | Vercel |
-| 会話基盤 | Twilio Conversations API | - |
-| メッセージング | LINE Messaging API | - |
-| メディア管理 | Twilio MCS (Media Content Service) | - |
-
-LINEユーザーからのメッセージはミドルウェアを経由してTwilio Conversationsに保存され、Web UIがTwilio Conversations JS SDKでリアルタイムに受信します。オペレーターの返信は逆の経路でLINEユーザーに届きます。
+本記事では **LINEとTwilioをどう繋ぐか**、**LINEスタンプをWebにどう表示するか**、**画像と動画をどう橋渡しするか** の3点に絞って解説します。
 
 ---
 
-## 技術的に面白い5つのポイント
+## 1. LINEとTwilio Conversationsの連携
 
-### 1. Twilio Conversations Webhookの罠 — `req.json()` では読めない
+### アーキテクチャの全体像
 
-最初にハマったのがこれです。Twilio ConversationsのWebhookは **`application/x-www-form-urlencoded`** 形式でPOSTされます。JSONを期待して `c.req.json()` を呼ぶと無言で失敗します。
+```
+┌──────────┐     Webhook (JSON)     ┌──────────────┐    REST API    ┌──────────────────────┐
+│ LINE     │ ──────────────────────→│ Middleware    │──────────────→│ Twilio Conversations │
+│ Platform │                        │ (Hono)       │               │                      │
+│          │←──────────────────────│              │←──────────────│                      │
+└──────────┘   LINE Messaging API   └──────────────┘   Webhook     └──────────────────────┘
+                                                    (form-urlencoded)        ↕ SDK
+                                                                    ┌──────────────────────┐
+                                                                    │ Web UI (Next.js 15)  │
+                                                                    └──────────────────────┘
+```
+
+ポイントは、LINEとTwilioの間にHonoで作ったミドルウェアを挟み、双方向のWebhookを相互変換していることです。
+
+### 受信フロー: LINE → Twilio Conversations
+
+LINEユーザーがメッセージを送ると、LINE PlatformがWebhookでミドルウェアを叩きます。ミドルウェアはそのメッセージをTwilio Conversations APIに書き込みます。
+
+Webhookルートの実装:
 
 ```typescript
-// ❌ これでは取れない
-const event = await c.req.json()
+// packages/middleware/src/routes/line-webhook.ts
+app.post('/webhook/line', async (c) => {
+  const body = await c.req.text();
+  const webhookBody: LineWebhookRequestBody = JSON.parse(body);
 
-// ✅ form-urlencoded形式で受け取る
-const formData = await c.req.formData()
-const event = Object.fromEntries(formData)
-```
+  const lineClient = new LineClient(c.env.LINE_CHANNEL_ACCESS_TOKEN);
+  const twilioClient = new TwilioClient(
+    c.env.TWILIO_ACCOUNT_SID,
+    c.env.TWILIO_AUTH_TOKEN,
+    c.env.TWILIO_CONVERSATIONS_SERVICE_SID
+  );
 
-LINEのWebhookがJSONなのに対し、Twilio側はform-urlencoded。同じ「Webhook」でもフォーマットが違うため、両方を同じミドルウェア内で扱う場合は注意が必要です。
-
----
-
-### 2. 画像・動画の橋渡し — Twilio MCS経由の2ステップ転送
-
-LINEユーザーが送った画像や動画をWeb UIに表示するのは、単純なURL転送では解決できません。LINE Content APIのURLは一時的かつ認証付きで、そのままブラウザに渡せないためです。
-
-解決策として **Twilio MCS (Media Content Service)** を仲介に使う2ステップ方式を採用しました。
-
-```
-LINE Content API → バイナリ取得 → Twilio MCSにアップロード → Media SID取得
-                                                                ↓
-                          Conversationメッセージに MediaSid として添付
-                                                                ↓
-                          Web UIでSDK経由の署名付き一時URLを取得して表示
-```
-
-ミドルウェア側の実装:
-
-```typescript
-// Step 1: LINE Content APIからバイナリデータを取得
-const imageData = await lineClient.getContent(message.id)
-
-// Step 2: Twilio MCSにアップロード
-const mediaSid = await twilioClient.uploadMediaToMCS('image/jpeg', imageData)
-
-// Step 3: Conversationメッセージに添付
-await twilioClient.createMediaMessage(conversationSid, mediaSid, author, '[Image]', attributes)
-```
-
-Web UI側で画像を表示する際のポイントは、MCSのURLを直接叩いてはいけないこと。認証エラーになります。代わりにSDKの `getContentTemporaryUrl()` で署名付きURLを取得します。
-
-```typescript
-const media = message.attachedMedia
-if (media && media.length > 0) {
-  const tempUrl = await media[0].getContentTemporaryUrl()
-  setImageUrl(tempUrl)
-}
-```
-
-この署名付きURLには有効期限があるため、長時間放置したタブでは画像が切れる可能性があります。それでも、自前のストレージを持たずにメディアを安全に橋渡しできるのはMCSの大きな利点です。
-
----
-
-### 3. 無限ループ防止 — LINEユーザーIDのパターンマッチ
-
-双方向ブリッジにはつきものの問題：**メッセージの無限ループ**。
-
-LINEユーザーがメッセージを送ると、ミドルウェアがTwilio Conversationsに保存します。すると `onMessageAdded` Webhookが発火し、ミドルウェアが再び呼ばれます。ここでLINEに転送してしまうと、それがまたWebhookを……という無限ループです。
-
-解決策はシンプルです。Twilio Conversations側のメッセージ作成者（Author）を見て、**LINEユーザーIDのパターンに一致するものはスキップ**します。
-
-```typescript
-function isLineUserId(identity: string): boolean {
-  return /^U[0-9a-f]{32}$/.test(identity)
-}
-
-// Webhookハンドラ内
-if (isLineUserId(author)) {
-  // LINEユーザー自身のメッセージ → 転送不要
-  return c.json({ status: 'skipped' })
-}
-```
-
-LINE User IDは `U` + 32文字の16進数という固定フォーマットなので、正規表現一発で判別できます。
-
----
-
-### 4. Participant自動追加の設計 — SDKの「見える会話」の仕組み
-
-Twilio Conversations JS SDKの `getSubscribedConversations()` は、**自分がParticipantとして追加されている会話だけ**を返します。つまり、LINE側から新しい会話が作られても、オペレーターがParticipantに入っていなければWeb UIには表示されません。
-
-そこで、Conversationの作成・取得のたびにオペレーターを自動追加するロジックを組みました。
-
-```typescript
-async function ensureOperatorParticipant(conversationSid: string): Promise<void> {
-  try {
-    await twilioClient.addParticipant(conversationSid, 'operator-001')
-  } catch (err) {
-    // 既に追加済みの場合は409エラー → 握り潰してOK
-    if (err instanceof Error && !err.message.includes('already exists')) {
-      throw err
-    }
-  }
-}
-```
-
-409 Conflictを「正常系」として扱うのがポイントです。毎回「既に存在するか？」をチェックするよりも、楽観的に追加を試みて失敗したら無視する方がAPI呼び出しが1回で済みます。
-
-Web UI側では2つのイベントで新しい会話を検出します:
-
-```typescript
-client.on('conversationAdded', handleNewConversation)   // 新規作成
-client.on('conversationJoined', handleNewConversation)   // 既存会話に後から追加された場合
-```
-
-`conversationAdded` だけだと、ミドルウェアが先にConversationを作り、後からParticipantを追加するケースを拾えません。`conversationJoined` で補完しています。
-
----
-
-### 5. メディア読み込みに追従する自動スクロール
-
-チャットUIの自動スクロールは見た目以上に厄介です。テキストだけなら最下部に飛ばせば終わりですが、画像・動画・スタンプが混在するとDOMの高さが非同期に変化します。
-
-最初の `scrollToBottom` 時点ではまだ画像が読み込まれておらず、スクロール位置がずれる問題が発生しました。
-
-採用した解決策は**複数回の遅延スクロール**です:
-
-```typescript
-useEffect(() => {
-  if (conversation && messages.length > 0) {
-    scrollToBottom('auto')  // 即座に1回
-
-    // 画像読み込みの各段階で追従
-    const delays = [100, 300, 500, 1000, 1500]
-    delays.forEach(delay => {
-      setTimeout(() => scrollToBottom('smooth'), delay)
+  // 複数イベントを並列処理
+  const results = await Promise.allSettled(
+    webhookBody.events.map(async (event) => {
+      switch (event.type) {
+        case 'message':
+          await handleLineMessageEvent(event, lineClient, twilioClient);
+          return { type: 'message', success: true };
+        case 'postback':
+          await handleLinePostbackEvent(event, lineClient, twilioClient);
+          return { type: 'postback', success: true };
+      }
     })
-  }
-}, [conversation?.sid, messages.length])
+  );
+  return c.json({ ok: true });
+});
 ```
 
-加えて、ユーザーが過去メッセージを読んでいるときに強制スクロールされないよう、「画面下部付近にいるか」を判定しています:
+LINEのWebhookは1リクエストに複数イベントが入ることがあります。`Promise.allSettled` で並列処理し、1つのイベントが失敗しても他に影響しないようにしています。
+
+### Conversation管理: LINE UserごとにConversationを1つ
+
+LINE UserごとにTwilio Conversationを1つ紐づけます。`uniqueName` に `line_{lineUserId}` を使い、初回は作成、2回目以降は取得するパターンです。
 
 ```typescript
-const isNearBottom =
-  container.scrollHeight - container.scrollTop - container.clientHeight < 100
+// packages/middleware/src/services/conversation-manager.ts
+export async function getOrCreateConversation(
+  twilioClient: TwilioClient,
+  lineUserId: string,
+  lineProfile: LineProfile
+): Promise<TwilioConversation> {
+  const uniqueName = `line_${lineUserId}`;
+  const defaultOperator = 'operator-001';
 
-if (isOwnMessage || isNearBottom) {
-  scrollToBottom('smooth')
+  try {
+    // 既存のConversationを取得
+    const conversation = await twilioClient.getConversation(uniqueName);
+
+    // 属性を更新（プロフィール画像の変更、タイムスタンプ等）
+    const attrs: ConversationAttributes = JSON.parse(conversation.attributes);
+    attrs.lastLineMessageAt = new Date().toISOString();
+    if (attrs.status === 'closed') {
+      attrs.status = 'open'; // クローズ済みなら再オープン
+    }
+    attrs.lineDisplayName = lineProfile.displayName;
+    attrs.lineProfilePictureUrl = lineProfile.pictureUrl ?? null;
+
+    // オペレーターをParticipantに追加（409は無視）
+    try {
+      await twilioClient.addParticipant(conversation.sid, defaultOperator);
+    } catch (err) {
+      if (err instanceof Error && !err.message.includes('already exists')) {
+        console.warn('Failed to add operator as participant:', err);
+      }
+    }
+
+    return await twilioClient.updateConversation(conversation.sid, {
+      Attributes: JSON.stringify(attrs),
+      FriendlyName: lineProfile.displayName,
+    });
+  } catch (error) {
+    // 404の場合は新規作成
+    if (error instanceof Error && error.message.includes('not found')) {
+      const attrs: ConversationAttributes = {
+        channel: 'line',
+        lineUserId,
+        lineDisplayName: lineProfile.displayName,
+        lineProfilePictureUrl: lineProfile.pictureUrl ?? null,
+        status: 'open',
+        assignedOperator: null,
+        tags: [],
+        createdAt: new Date().toISOString(),
+        lastLineMessageAt: new Date().toISOString(),
+      };
+
+      const conversation = await twilioClient.createConversation({
+        UniqueName: uniqueName,
+        FriendlyName: lineProfile.displayName,
+        Attributes: JSON.stringify(attrs),
+      });
+
+      await twilioClient.addParticipant(conversation.sid, defaultOperator);
+      return conversation;
+    }
+    throw error;
+  }
 }
 ```
 
-IntersectionObserverやResizeObserverを使う方法も検討しましたが、Twilio SDKのメッセージオブジェクトからメディア読み込み完了を正確に検知するのが難しく、タイマーベースの方がシンプルで確実でした。
+ここで重要なのが **Participantの自動追加** です。Twilio Conversations JS SDKの `getSubscribedConversations()` は、自分がParticipantとして追加されている会話しか返しません。オペレーターを毎回追加しておかないと、Web UIに会話が表示されません。既に追加済みの場合は409エラーが返りますが、それは正常系として握り潰します。
+
+### 送信フロー: Twilio Conversations → LINE
+
+Web UIからオペレーターがメッセージを送ると、Twilio Conversations SDKが直接メッセージを書き込みます。するとTwilio側から `onMessageAdded` Webhookがミドルウェアに飛んできます。
+
+ここで注意が必要なのが **Webhookのデータ形式** です。LINEのWebhookはJSON形式ですが、Twilio Conversationsは **form-urlencoded形式** で送ってきます。
+
+```typescript
+// packages/middleware/src/routes/conversations-webhook.ts
+app.post('/webhook/conversations', async (c) => {
+  // ❌ c.req.json() では取れない
+  // ✅ form-urlencoded形式でパース
+  const formData = await c.req.formData();
+  const event: ConversationsWebhookEvent = Object.fromEntries(formData) as any;
+
+  if (event.EventType !== 'onMessageAdded') {
+    return c.json({ ok: true });
+  }
+
+  await handleConversationsMessageAdded(event, lineClient, twilioClient);
+  return c.json({ ok: true });
+});
+```
+
+### 無限ループの防止
+
+双方向ブリッジの最大の罠がメッセージの無限ループです。
+
+1. LINEユーザーがメッセージ送信
+2. ミドルウェアがTwilio Conversationsに書き込む
+3. Twilio `onMessageAdded` Webhookが発火
+4. ミドルウェアがLINEにメッセージ送信 ← ここが問題
+5. 1に戻って無限ループ
+
+解決策として、メッセージのAuthorがLINE User IDのパターン（`U` + 32文字の16進数 = 33文字）に一致する場合はスキップします。
+
+```typescript
+// packages/middleware/src/services/conversation-manager.ts
+export function isLineUserId(author: string): boolean {
+  return author.startsWith('U') && author.length === 33;
+}
+
+// packages/middleware/src/handlers/outbound.ts
+export async function handleConversationsMessageAdded(
+  event: ConversationsWebhookEvent,
+  lineClient: LineClient,
+  twilioClient: TwilioClient
+): Promise<void> {
+  // LINEユーザーからのメッセージはスキップ
+  if (isLineUserId(event.Author)) {
+    return;
+  }
+
+  if (!event.Body) return;
+
+  const conversation = await twilioClient.getConversationBySid(event.ConversationSid);
+  const attrs: ConversationAttributes = JSON.parse(conversation.attributes);
+
+  if (attrs.channel !== 'line') return;
+
+  // オペレーターのメッセージだけLINEに転送
+  await lineClient.pushMessage(attrs.lineUserId, [
+    { type: 'text', text: event.Body },
+  ]);
+}
+```
+
+Twilio Conversations側のAuthorには、受信時にLINE User IDをそのまま設定しているため、この判定が可能になります。
 
 ---
 
-## その他の実装Tips
+## 2. LINEスタンプをWeb UIに表示する
 
-### LINEスタンプの表示
+LINEのスタンプは、テキストでもなく画像添付でもない独自のメッセージタイプです。Twilio Conversationsにはスタンプという概念がないため、独自の仕組みでWeb UIに表示します。
 
-LINEの公式スタンプ画像はCDNから直接取得できます:
+### ミドルウェア: スタンプ情報の保存
+
+LINEのWebhookで受信したスタンプメッセージには `stickerId` と `packageId` が含まれます。これをTwilio Conversationsの **message attributes** に格納します。
+
+```typescript
+// packages/middleware/src/handlers/inbound.ts
+async function handleStickerMessage(
+  message: LineStickerMessage,
+  conversationSid: string,
+  twilioClient: TwilioClient,
+  lineUserId: string
+): Promise<void> {
+  // LINEスタンプの画像URLを生成
+  const stickerUrl = `https://stickershop.line-scdn.net/stickershop/v1/sticker/${message.stickerId}/android/sticker.png`;
+
+  const attrs: StickerMessageAttributes = {
+    type: 'sticker',
+    stickerId: message.stickerId,
+    packageId: message.packageId,
+    stickerUrl,
+  };
+
+  await twilioClient.createMessage(conversationSid, {
+    Author: lineUserId,
+    Body: `[Sticker: ${message.packageId}/${message.stickerId}]`,
+    Attributes: JSON.stringify(attrs),
+  });
+}
+```
+
+ポイントは2つあります。
+
+**1. LINE CDNのスタンプ画像URL**
+
+LINEの公式スタンプ画像は以下のパターンのURLで取得できます:
 
 ```
 https://stickershop.line-scdn.net/stickershop/v1/sticker/{stickerId}/android/sticker.png
 ```
 
-ただしカスタムスタンプやアニメーションスタンプはこのパターンでは取得できないため、フォールバックとして絵文字表示を用意しています。
+このURLは認証不要で、ブラウザから直接アクセスできます。LINE Content APIのようにアクセストークンが必要なメディアとは異なり、CDNへの直リンクで済むのがスタンプのシンプルな点です。
 
-### ミドルウェアでのAccess Token手動生成
+**2. Attributes活用によるメッセージタイプの拡張**
 
-Web UI側はTwilio Node.js SDKの `AccessToken` クラスで簡単にトークンを生成できますが、ミドルウェア（Hono on Cloud Run）ではSDKの依存を避けたかったため、`jose` ライブラリでJWTを手動構築しています。
+Twilio Conversationsのメッセージには `Body`（テキスト）と `Attributes`（任意のJSONメタデータ）があります。Attributesに `type: 'sticker'` とスタンプ情報を入れることで、Web UI側でメッセージの種類を判別し、表示を切り替えられます。
+
+型定義は共有パッケージで管理:
 
 ```typescript
-const payload = {
-  jti: `${apiKeySid}-${now}`,
-  iss: apiKeySid,
-  sub: accountSid,
-  exp: now + ttl,
-  grants: {
-    identity,
-    chat: { service_sid: serviceSid }
-  }
+// packages/shared/src/types/message.ts
+export type MessageAttributes =
+  | TextMessageAttributes
+  | StickerMessageAttributes
+  | ImageMessageAttributes
+  | VideoMessageAttributes
+  | ...;
+
+export interface StickerMessageAttributes {
+  type: 'sticker';
+  stickerId: string;
+  packageId: string;
+  stickerUrl: string;
 }
-const token = await new SignJWT(payload)
-  .setProtectedHeader({ alg: 'HS256', typ: 'JWT' })
-  .sign(secret)
 ```
 
-Twilio Access Tokenのペイロード構造さえ合わせれば、SDK無しでも正しいトークンを生成できます。
+### Web UI: スタンプの表示コンポーネント
 
-### ES Modulesの `.js` 拡張子問題
-
-Node.js環境でES Modulesを使う場合、TypeScriptの相対importに `.js` 拡張子が必須です。TypeScriptのソースなのに `.js` を書くという直感に反する規則ですが、`tsc` がimportパスを変換しないため必要になります。
+メッセージの `attributes.type` でコンポーネントを切り替える `MessageRenderer` を用意し、スタンプの場合は `StickerBubble` を表示します。
 
 ```typescript
-// ✅ Node.js ES Modulesで動く
-import { LineClient } from '../services/line.js'
+// packages/web-ui/src/components/messages/MessageRenderer.tsx
+const MessageRenderer: React.FC<MessageRendererProps> = ({ message, isOwnMessage }) => {
+  const attributes = message.attributes as unknown as MessageAttributes | undefined;
+  const messageType = attributes?.type || 'text';
 
-// ❌ コンパイルは通るがNode.jsで実行時エラー
-import { LineClient } from '../services/line'
+  switch (messageType) {
+    case 'text':
+      return <TextBubble message={message} isOwnMessage={isOwnMessage} />;
+    case 'sticker':
+      return <StickerBubble message={message} isOwnMessage={isOwnMessage} />;
+    case 'image':
+      return <ImageBubble message={message} isOwnMessage={isOwnMessage} />;
+    case 'video':
+      return <VideoBubble message={message} isOwnMessage={isOwnMessage} />;
+    // ...
+  }
+};
 ```
 
-### 環境変数のtrim処理
+`StickerBubble` コンポーネントでは、CDN URLから画像を表示し、読み込みに失敗した場合のフォールバックUIを用意しています。カスタムスタンプなどCDNパターンに合わないものへの対策です。
 
-Cloud RunやVercelで環境変数を設定する際、末尾に改行やスペースが混入するケースがあります。特にダッシュボードからのコピペ時に起きやすい問題です。
+```tsx
+// packages/web-ui/src/components/messages/StickerBubble.tsx
+const StickerBubble: React.FC<StickerBubbleProps> = ({ message, isOwnMessage }) => {
+  const attributes = message.attributes as unknown as StickerMessageAttributes;
+  const [imageError, setImageError] = React.useState(false);
+
+  return (
+    <div className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'} mb-3 px-4`}>
+      <div className={`flex flex-col ${isOwnMessage ? 'items-end' : 'items-start'}`}>
+        <div className="w-32 h-32 relative">
+          {!imageError ? (
+            <img
+              src={attributes.stickerUrl}
+              alt={`Sticker ${attributes.stickerId}`}
+              className="w-full h-full object-contain"
+              onError={() => setImageError(true)}
+            />
+          ) : (
+            // 読み込み失敗時のフォールバック
+            <div className="w-full h-full bg-gray-100 border border-gray-300 rounded-lg
+                            flex items-center justify-center">
+              <div className="text-center">
+                <div className="text-4xl mb-2">🎨</div>
+                <p className="text-xs text-gray-500">LINE Sticker</p>
+                <p className="text-xs text-gray-400 mt-1">
+                  {attributes.packageId}/{attributes.stickerId}
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+```
+
+`onError` でスタンプ画像のロード失敗を検知し、packageIdとstickerIdを表示するフォールバックに切り替えます。公式スタンプはほぼ問題ありませんが、クリエイターズスタンプやアニメーションスタンプではこのCDN URLが効かないケースがあります。
+
+---
+
+## 3. 画像・動画をTwilio MCS経由でWeb UIに表示する
+
+テキストやスタンプと違い、画像と動画の橋渡しは一筋縄ではいきません。LINEの画像・動画はLINE Content APIで取得しますが、このAPIは認証が必要で、URLをそのままブラウザに渡すことができません。
+
+解決策として **Twilio MCS (Media Content Service)** を中継ストレージとして使います。
+
+### 処理の流れ
+
+```
+LINE Content API  ──(バイナリ)──→  Twilio MCS  ──(Media SID)──→  Conversationメッセージ
+                                                                         │
+                                                      署名付き一時URL ←──┘
+                                                           │
+                                                      Web UIで表示
+```
+
+### ミドルウェア: MCSへのアップロード
+
+Step 1としてLINE Content APIからバイナリデータを取得し、Step 2としてTwilio MCSにアップロードします。
+
+まずLINEクライアントの `getContent` メソッド:
 
 ```typescript
-const accountSid = process.env.TWILIO_ACCOUNT_SID?.trim()
+// packages/middleware/src/services/line.ts
+async getContent(messageId: string): Promise<ArrayBuffer> {
+  const response = await fetch(
+    `${this.dataApiBaseUrl}/message/${messageId}/content`,
+    {
+      headers: {
+        Authorization: `Bearer ${this.accessToken}`,
+      },
+    }
+  );
+  return response.arrayBuffer();
+}
 ```
 
-地味ですが、これを入れておかないとAPI認証が謎に失敗するデバッグ地獄に陥ります。
+LINE Content APIのベースURLは通常のAPIとは異なり、`https://api-data.line.me/v2/bot` です。レスポンスをそのまま `ArrayBuffer` として取得します。
+
+次にTwilioクライアントのMCSアップロード:
+
+```typescript
+// packages/middleware/src/services/twilio.ts
+async uploadMediaToMCS(
+  contentType: string,
+  mediaData: ArrayBuffer
+): Promise<string> {
+  const mcsUrl = `https://mcs.us1.twilio.com/v1/Services/${this.serviceSid}/Media`;
+
+  const response = await fetch(mcsUrl, {
+    method: 'POST',
+    headers: {
+      Authorization: this.authHeader,  // Basic認証
+      'Content-Type': contentType,
+      'X-Twilio-Webhook-Enabled': 'true',
+    },
+    body: mediaData,
+  });
+
+  const result: any = await response.json();
+  return result.sid; // Media SID (MExxxx形式)
+}
+```
+
+MCSのエンドポイントは `https://mcs.us1.twilio.com/v1/Services/{ServiceSid}/Media` です。ここにバイナリデータを直接POSTすると、`MExxxx` 形式のMedia SIDが返ってきます。
+
+そしてMedia SIDをConversationメッセージに添付:
+
+```typescript
+// packages/middleware/src/services/twilio.ts
+async createMediaMessage(
+  conversationSid: string,
+  mediaSid: string,
+  author: string,
+  body: string,
+  attributes?: string
+): Promise<TwilioMessage> {
+  const bodyParams = new URLSearchParams();
+  bodyParams.append('Author', author);
+  bodyParams.append('Body', body);
+  bodyParams.append('MediaSid', mediaSid);  // ← これがキー
+  if (attributes) bodyParams.append('Attributes', attributes);
+
+  const response = await fetch(
+    `${this.baseUrl}/Conversations/${conversationSid}/Messages`,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: this.authHeader,
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: bodyParams.toString(),
+    }
+  );
+  return response.json() as Promise<TwilioMessage>;
+}
+```
+
+通常の `createMessage` と異なり、`MediaSid` パラメータを追加するだけでメディア付きメッセージになります。
+
+### Inboundハンドラでの画像・動画処理
+
+実際のハンドラでは、上記の2ステップを組み合わせます:
+
+```typescript
+// packages/middleware/src/handlers/inbound.ts
+async function handleImageMessage(
+  message: LineImageMessage,
+  conversationSid: string,
+  twilioClient: TwilioClient,
+  lineClient: LineClient,
+  lineUserId: string
+): Promise<void> {
+  // Step 1: LINE Content APIから画像データを取得
+  const imageData = await lineClient.getContent(message.id);
+
+  // Step 2: MCSにアップロード
+  const mediaSid = await twilioClient.uploadMediaToMCS('image/jpeg', imageData);
+
+  const attrs: ImageMessageAttributes = {
+    type: 'image',
+    mediaUrl: `https://mcs.us1.twilio.com/v1/Services/${twilioClient.serviceSid}/Media/${mediaSid}`,
+  };
+
+  // Step 3: メディア付きメッセージを作成
+  await twilioClient.createMediaMessage(
+    conversationSid,
+    mediaSid,
+    lineUserId,
+    '[Image]',
+    JSON.stringify(attrs)
+  );
+}
+```
+
+動画も同じパターンで、Content-Typeを `video/mp4` に変えるだけです:
+
+```typescript
+async function handleVideoMessage(
+  message: LineVideoMessage,
+  conversationSid: string,
+  twilioClient: TwilioClient,
+  lineClient: LineClient,
+  lineUserId: string
+): Promise<void> {
+  const videoData = await lineClient.getContent(message.id);
+  const mediaSid = await twilioClient.uploadMediaToMCS('video/mp4', videoData);
+
+  const attrs: VideoMessageAttributes = {
+    type: 'video',
+    mediaUrl: `https://mcs.us1.twilio.com/v1/Services/${twilioClient.serviceSid}/Media/${mediaSid}`,
+  };
+
+  await twilioClient.createMediaMessage(
+    conversationSid, mediaSid, lineUserId, '[Video]', JSON.stringify(attrs)
+  );
+}
+```
+
+### Web UI: 署名付き一時URLで表示
+
+MCSに保存した画像・動画をWeb UIで表示する際に最も重要なのが、**MCSのURLを直接叩いてはいけない** という点です。`https://mcs.us1.twilio.com/...` をブラウザで開いても認証エラーになります。
+
+代わりに、Twilio Conversations JS SDKの `attachedMedia` から署名付きの一時URLを取得します:
+
+```tsx
+// packages/web-ui/src/components/messages/ImageBubble.tsx
+const ImageBubble: React.FC<ImageBubbleProps> = ({ message, isOwnMessage }) => {
+  const attributes = message.attributes as unknown as ImageMessageAttributes;
+  const [imageError, setImageError] = React.useState(false);
+  const [isLoading, setIsLoading] = React.useState(true);
+  const [imageUrl, setImageUrl] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    const loadImageUrl = async () => {
+      try {
+        const media = message.attachedMedia;
+        if (media && media.length > 0) {
+          // ← ここが核心。SDKが署名付き一時URLを生成してくれる
+          const tempUrl = await media[0].getContentTemporaryUrl();
+          setImageUrl(tempUrl);
+        } else {
+          setImageUrl(attributes.mediaUrl || null);
+        }
+      } catch (error) {
+        setImageError(true);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadImageUrl();
+  }, [message, attributes.mediaUrl]);
+
+  return (
+    <div className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'} mb-3 px-4`}>
+      <div className="max-w-xs rounded-lg overflow-hidden shadow-md bg-gray-100">
+        {!imageError && imageUrl ? (
+          <>
+            {isLoading && (
+              <div className="w-64 h-48 flex items-center justify-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-500" />
+              </div>
+            )}
+            <img
+              src={imageUrl}
+              alt="Image"
+              className={`max-w-full h-auto ${isLoading ? 'hidden' : 'block'}`}
+              onLoad={() => setIsLoading(false)}
+              onError={() => { setImageError(true); setIsLoading(false); }}
+            />
+          </>
+        ) : (
+          <div className="w-64 h-48 flex items-center justify-center">
+            <div className="text-center">
+              <div className="text-5xl mb-2">🖼️</div>
+              <p className="text-sm text-gray-500">
+                {isLoading ? '読み込み中...' : '画像を読み込めません'}
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+```
+
+動画も同じアプローチで、`<img>` を `<video controls>` に置き換え、`onLoad` を `onLoadedData` に変えるだけです:
+
+```tsx
+// packages/web-ui/src/components/messages/VideoBubble.tsx（差分のみ）
+<video
+  src={videoUrl}
+  controls
+  className={`max-w-full h-auto ${isLoading ? 'hidden' : 'block'}`}
+  onLoadedData={() => setIsLoading(false)}
+  onError={() => { setVideoError(true); setIsLoading(false); }}
+/>
+```
+
+### なぜMCSを経由するのか
+
+代替案として、画像をBase64でattributesに埋め込む方法や、Cloud Storageに保存する方法も考えられますが:
+
+- **Base64埋め込み**: attributesのサイズ上限に引っかかる。動画は論外
+- **Cloud Storage**: インフラ管理が増える。署名付きURL生成を自前で実装する必要がある
+- **Twilio MCS**: Conversationsと同じ認証基盤。SDKが署名付きURLを自動生成。追加インフラ不要
+
+MCSの一時URLには有効期限があるため、長時間放置したタブでは画像が切れます。ただし、会話を再度開けばURLが再生成されるため、実用上は問題ありません。
 
 ---
 
 ## まとめ
 
-| 課題 | 解決策 |
-|---|---|
-| Twilio WebhookがJSONじゃない | `formData()` でパース |
-| LINE画像をWeb UIに渡せない | Twilio MCS経由で署名付きURL |
-| メッセージの無限ループ | LINE User IDパターンで判別・スキップ |
-| 新しい会話がUIに出ない | Participant自動追加 + `conversationJoined` イベント |
-| メディア読み込み後のスクロールずれ | 複数回遅延スクロール |
+3つの連携ポイントをまとめます:
 
-LINE Messaging APIとTwilio Conversations APIはそれぞれ単体では豊富なドキュメントがありますが、**2つを組み合わせた双方向ブリッジ**の情報はほとんど見つかりませんでした。特にメディアの橋渡しとリアルタイム同期の組み合わせは試行錯誤の連続で、この記事がどなたかの参考になれば幸いです。
+| テーマ | 仕組み |
+|---|---|
+| LINE↔Twilio連携 | Webhookの双方向変換 + Author判定による無限ループ防止 |
+| スタンプ表示 | LINE CDN URL + message attributesに `type: 'sticker'` で識別 |
+| 画像・動画表示 | LINE Content API → Twilio MCS → `getContentTemporaryUrl()` で署名付きURL取得 |
+
+Twilio Conversationsの `Attributes` フィールドが汎用的なJSON格納庫として機能するため、LINEのスタンプ・画像・動画といったTwilio側にない概念をうまく乗せることができました。メッセージのbodyはフォールバック用のテキスト（`[Sticker]`, `[Image]`等）を入れ、実際の表示ロジックはattributesの `type` フィールドで分岐させる設計です。
 
 ### 技術スタック
 
-- **TypeScript** (全コンポーネント共通)
-- **Hono** — 軽量HTTPフレームワーク
-- **Next.js 15** (App Router) — Server Components + Client Components
-- **Twilio Conversations JS SDK** — リアルタイムメッセージング
-- **pnpm workspaces** — モノレポ管理
-- **Google Cloud Run** + **Vercel** — デプロイ
+| コンポーネント | 技術 |
+|---|---|
+| ミドルウェア | Hono (Node.js) / Google Cloud Run |
+| Web Chat UI | Next.js 15 (App Router) / Vercel |
+| 会話基盤 | Twilio Conversations API + JS SDK |
+| メッセージング | LINE Messaging API |
+| メディア管理 | Twilio MCS (Media Content Service) |
+| 言語 | TypeScript (全コンポーネント共通) |
+| モノレポ | pnpm workspaces |

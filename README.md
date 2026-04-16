@@ -2,6 +2,8 @@
 
 LINE公式アカウントとTwilio Conversations APIを統合し、独自のWeb Chat UIでオペレーターがLINEユーザーとリアルタイムにメッセージのやり取りを行うプラットフォームです。
 
+![デモ画面](docs/images/demo-screenshot.png)
+
 ## 🚀 主な機能
 
 - **双方向メッセージング**: LINEユーザー ↔ オペレーター間でリアルタイムチャット

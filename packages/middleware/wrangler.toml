@@ -1,0 +1,38 @@
+#:schema node_modules/wrangler/config-schema.json
+name = "line-twilio-chat-middleware"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Workers の設定
+workers_dev = true
+
+# ビルド設定
+[build]
+command = ""
+
+# 環境変数（開発用）
+# 本番環境では `wrangler secret put` コマンドで設定すること
+[vars]
+# TWILIO_ACCOUNT_SID = "ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+# TWILIO_CONVERSATIONS_SERVICE_SID = "ISxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+
+# Secrets（機密情報）
+# 以下のコマンドで設定する:
+# wrangler secret put LINE_CHANNEL_ACCESS_TOKEN
+# wrangler secret put LINE_CHANNEL_SECRET
+# wrangler secret put TWILIO_ACCOUNT_SID
+# wrangler secret put TWILIO_AUTH_TOKEN
+# wrangler secret put TWILIO_API_KEY_SID
+# wrangler secret put TWILIO_API_KEY_SECRET
+# wrangler secret put TWILIO_CONVERSATIONS_SERVICE_SID
+
+# 本番環境
+[env.production]
+name = "line-twilio-chat-middleware-prod"
+workers_dev = false
+
+# ステージング環境
+[env.staging]
+name = "line-twilio-chat-middleware-staging"
+workers_dev = false
