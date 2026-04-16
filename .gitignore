@@ -29,6 +29,10 @@ lerna-debug.log*
 *.tsbuildinfo
 .tsbuildinfo
 
+# Claude Code
+.claude/*
+!.claude/rules/
+
 # IDE
 .vscode/
 .idea/

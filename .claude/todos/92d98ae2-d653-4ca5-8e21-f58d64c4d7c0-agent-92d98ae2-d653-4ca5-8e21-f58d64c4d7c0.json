@@ -1,8 +1,0 @@
-[
-  {
-    "content": "Fix Twilio recording error by using TwiML Record verb instead of API",
-    "status": "completed",
-    "priority": "high",
-    "id": "1"
-  }
-]

@@ -1,7 +1,0 @@
-[
-  {
-    "content": "Fix Gemini client initialization - remove unnecessary model call",
-    "status": "completed",
-    "id": "1"
-  }
-]

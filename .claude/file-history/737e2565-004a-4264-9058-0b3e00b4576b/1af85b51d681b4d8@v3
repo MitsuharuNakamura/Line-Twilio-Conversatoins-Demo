@@ -1,6 +1,0 @@
-node_modules/
-.env
-ngrok.log
-*.log
-.DS_Store
-*.backup
