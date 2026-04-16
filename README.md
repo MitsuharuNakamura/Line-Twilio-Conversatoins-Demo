@@ -342,3 +342,352 @@ MIT
 ## 📞 サポート
 
 Issue や Pull Request をお待ちしています！
+
+---
+
+# LINE × Twilio Conversations Integrated Chat Platform (English)
+
+A platform that integrates LINE Official Accounts with the Twilio Conversations API, enabling operators to communicate with LINE users in real time through a custom Web Chat UI.
+
+![Demo Screenshot](docs/images/demo-screenshot.png)
+
+## Key Features
+
+- **Bidirectional Messaging**: Real-time chat between LINE users and operators
+- **Rich Media Support**: Send and receive images, videos, stickers, and emoji
+- **Web Chat UI**: Modern UI powered by Next.js + Twilio Conversations SDK
+- **Serverless/Container Ready**: Cloudflare Workers or Google Cloud Run
+- **TypeScript**: Type-safe full-stack development
+- **Monorepo**: Efficient management with pnpm workspaces
+
+## Prerequisites
+
+- Node.js 20+
+- pnpm 8+
+- Twilio account (with Conversations Service configured)
+- LINE Developers account (with a channel created)
+- Cloudflare account (Workers available) or Google Cloud Platform (Cloud Run available)
+
+## Setup
+
+### 1. Clone the Repository
+
+```bash
+git clone <repository-url>
+cd line-twilio-chat
+```
+
+### 2. Install Dependencies
+
+```bash
+pnpm install
+```
+
+### 3. Configure Environment Variables
+
+```bash
+cd packages/middleware
+
+# Create .dev.vars file
+cp .dev.vars.example .dev.vars
+# Edit .dev.vars with your actual values
+
+# Environment variables for Cloud Run deployment (see below)
+```
+
+#### Web UI
+
+```bash
+cd packages/web-ui
+cp .env.local.example .env.local
+# Edit .env.local with the following:
+# - NEXT_PUBLIC_MIDDLEWARE_URL (Cloud Run URL)
+# - TWILIO_ACCOUNT_SID
+# - TWILIO_API_KEY_SID
+# - TWILIO_API_KEY_SECRET
+# - TWILIO_CONVERSATIONS_SERVICE_SID
+```
+
+### 4. Configure Twilio Conversations Webhook
+
+Set the following in the Twilio Console:
+
+1. Conversations Service -> Configuration -> Webhooks
+2. **Post-Event URL**: `https://your-service.run.app/webhook/conversations`
+3. **Method**: POST
+4. **Events**: `onMessageAdded`
+
+### 5. Configure LINE Webhook URL
+
+Set the following in the LINE Developers Console:
+
+1. Channel Settings -> Messaging API Settings
+2. **Webhook URL**: `https://your-service.run.app/webhook/line`
+3. **Use Webhook**: Enable
+
+### 6. Deploy to Google Cloud Run
+
+```bash
+# Run from the project root
+
+# 1. Create an Artifact Registry repository (first time only)
+gcloud artifacts repositories create line-twilio-chat \
+  --repository-format=docker \
+  --location=asia-northeast1
+
+# 2. Build & push Docker image
+gcloud builds submit --tag asia-northeast1-docker.pkg.dev/YOUR_PROJECT_ID/line-twilio-chat/middleware:latest .
+
+# 3. Deploy to Cloud Run
+gcloud run deploy line-twilio-chat-middleware \
+  --image asia-northeast1-docker.pkg.dev/YOUR_PROJECT_ID/line-twilio-chat/middleware:latest \
+  --platform managed \
+  --region asia-northeast1 \
+  --allow-unauthenticated \
+  --set-env-vars="LINE_CHANNEL_ACCESS_TOKEN=xxx,LINE_CHANNEL_SECRET=xxx,TWILIO_ACCOUNT_SID=xxx,TWILIO_AUTH_TOKEN=xxx,TWILIO_API_KEY_SID=xxx,TWILIO_API_KEY_SECRET=xxx,TWILIO_CONVERSATIONS_SERVICE_SID=xxx"
+```
+
+See `packages/middleware/CLOUDRUN_DEPLOY.md` for details.
+
+#### Deploy Web UI
+
+```bash
+cd packages/web-ui
+pnpm build
+
+# For Vercel
+vercel deploy
+
+# Or deploy to another hosting service
+```
+
+## Development
+
+### Start Local Dev Server
+
+```bash
+# Start all packages simultaneously
+pnpm dev
+
+# Or start individually
+pnpm --filter middleware dev    # Node.js (localhost:8080)
+pnpm --filter web-ui dev        # Next.js (localhost:3000)
+```
+
+### Type Check
+
+```bash
+pnpm typecheck
+```
+
+### Build
+
+```bash
+pnpm build
+```
+
+## Project Structure
+
+```text
+line-twilio-chat/
+├── packages/
+│   ├── shared/              # Shared type definitions & utilities
+│   ├── middleware/          # Middleware (Hono)
+│   │   ├── src/
+│   │   │   ├── routes/      # API routes
+│   │   │   ├── services/    # LINE/Twilio clients
+│   │   │   ├── handlers/    # Message conversion handlers
+│   │   │   ├── index.ts     # Main application
+│   │   │   └── server.ts    # Node.js HTTP server
+│   │   └── Dockerfile       # For Cloud Run
+│   └── web-ui/              # Next.js App
+│       ├── src/
+│       │   ├── app/         # Next.js App Router
+│       │   ├── components/  # React components
+│       │   ├── hooks/       # Twilio SDK hooks
+│       │   └── lib/         # Utilities
+│       └── package.json
+├── Dockerfile               # Root Dockerfile (workspace-aware)
+├── docs/                    # Design documents
+├── CLAUDE.md               # AI development document
+└── README.md               # This file
+```
+
+## Tech Stack
+
+| Layer | Technology |
+| --- | --- |
+| Frontend | Next.js 15, React, Tailwind CSS |
+| Backend | Hono (Node.js) |
+| Container | Google Cloud Run, Docker |
+| Real-time Communication | Twilio Conversations JS SDK |
+| Messaging | LINE Messaging API |
+| Media Storage | Twilio Media Content Service (MCS) |
+| Language | TypeScript (strict mode) |
+| Package Management | pnpm workspaces |
+
+## Architecture
+
+### Message Flow
+
+#### LINE -> Web UI
+
+1. LINE user sends a message (text, image, video, or sticker)
+2. LINE -> Middleware webhook (`/webhook/line`)
+3. Middleware:
+   - Text: Stored directly in Twilio Conversations
+   - Image/Video: Downloaded from LINE -> Uploaded to Twilio MCS -> Attached to message
+   - Sticker: Sticker info saved in attributes
+4. Twilio SDK -> Delivered to Web UI in real time (`messageAdded` event)
+5. Web UI:
+   - Image/Video: Retrieves signed URL via `attachedMedia[].getContentTemporaryUrl()` for display
+   - Sticker: Fetched from LINE CDN for display
+
+#### Web UI -> LINE
+
+1. Operator sends a message from Web UI
+2. Web UI -> Message saved via Twilio Conversations API
+3. Twilio -> Middleware webhook (`/webhook/conversations`)
+4. Middleware -> Message sent via LINE Messaging API
+
+### Media Processing Flow
+
+```text
+LINE Image/Video
+  ↓
+[LINE Content API] <- Middleware downloads
+  ↓
+[Twilio MCS] <- Binary data uploaded
+  ↓
+[Conversations Message] <- Media SID attached
+  ↓
+[Web UI] <- Displayed via signed temporary URL
+```
+
+## Supported Message Types
+
+### LINE -> Web UI
+
+| Type | Status | Display Method |
+| --- | --- | --- |
+| Text | Supported | Displayed as-is |
+| Emoji | Supported | Displayed as Unicode emoji |
+| Sticker | Supported | Image fetched from LINE CDN |
+| Image | Supported | Displayed via Twilio MCS |
+| Video | Supported | Played via Twilio MCS |
+| Audio | Not yet implemented | - |
+| Location | Not yet implemented | - |
+| File | Not yet implemented | - |
+
+### Web UI -> LINE
+
+| Type | Status |
+| --- | --- |
+| Text | Supported |
+| Other | Not yet implemented |
+
+## Troubleshooting
+
+### Messages Not Arriving
+
+1. **Check middleware logs**:
+
+   ```bash
+   gcloud logging read "resource.type=cloud_run_revision AND resource.labels.service_name=line-twilio-chat-middleware" --limit 50
+   ```
+
+2. **Verify webhook settings**:
+   - Twilio Conversations Webhook URL
+   - LINE Webhook URL
+
+3. **Verify environment variables**:
+
+   ```bash
+   gcloud run services describe line-twilio-chat-middleware --region asia-northeast1
+   ```
+
+### Images/Videos Not Displaying
+
+1. **Verify upload to Twilio MCS**:
+   Check logs for `MCS Response status: 201` and `Media SID: MExxxx`
+
+2. **Verify signed URL retrieval in Web UI**:
+   Check the browser console for `Failed to load image/video URL` errors
+
+3. **Temporary URL expiration**:
+   Twilio signed URLs expire after a certain period. Reload the page.
+
+4. **Local development environment**:
+   Ensure the `.dev.vars` file is correctly configured.
+
+### Conversations Not Showing
+
+Verify that the operator has been added as a Participant:
+
+```bash
+curl -X GET \
+  "https://conversations.twilio.com/v1/Services/{ServiceSid}/Conversations/{ConversationSid}/Participants" \
+  -u "{AccountSid}:{AuthToken}"
+```
+
+If no Participants exist, add one manually:
+
+```bash
+curl -X POST \
+  "https://conversations.twilio.com/v1/Services/{ServiceSid}/Conversations/{ConversationSid}/Participants" \
+  -d "Identity=operator-001" \
+  -u "{AccountSid}:{AuthToken}"
+```
+
+## Important Implementation Notes
+
+### Twilio Conversations Webhook Format
+
+Twilio webhooks are sent in `application/x-www-form-urlencoded` format:
+
+```typescript
+// Correct
+const formData = await c.req.formData();
+const event = Object.fromEntries(formData);
+
+// Incorrect
+const event = await c.req.json();
+```
+
+### Automatic Participant Addition
+
+`getSubscribedConversations()` only returns conversations where the user has been added as a Participant. The following implementation is required:
+
+- On new Conversation creation: `addParticipant(conversationSid, 'operator-001')`
+- On existing Conversation retrieval: If not added, call `addParticipant()`
+
+### Real-time Conversation Detection
+
+Listen for the following events to detect new conversations:
+
+- `conversationAdded`: Newly created conversation
+- `conversationJoined`: Added as a Participant to an existing conversation
+
+### ES Modules Support
+
+When running in a Node.js environment, the `.js` extension is required for relative imports:
+
+```typescript
+// Correct
+import { LineClient } from '../services/line.js';
+
+// Incorrect
+import { LineClient } from '../services/line';
+```
+
+## License
+
+MIT
+
+## Contributing
+
+If you'd like to contribute, please review `CLAUDE.md` and the documents under `docs/` first.
+
+## Support
+
+Issues and Pull Requests are welcome!
